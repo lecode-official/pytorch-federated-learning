@@ -11,6 +11,7 @@ class Application:
     def __init__(self) -> None:
         """Initializes a new Application instance."""
 
+        # Initializes the logger
         self.logger = logging.getLogger('fl')
         self.logger.setLevel(logging.DEBUG)
         logging_formatter = logging.Formatter('%(asctime)s - %(levelname)s: %(message)s')
