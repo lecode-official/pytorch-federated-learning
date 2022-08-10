@@ -45,7 +45,7 @@ class Trainer:
         self.model = self.model.to(self.device)
 
         # Creates the data loaders
-        self.training_data_loader = torch.data.utils.DataLoader(
+        self.training_data_loader = torch.utils.data.DataLoader(
             self.training_subset,
             batch_size=self.batch_size,
             num_workers=psutil.cpu_count(logical=False),
@@ -104,15 +104,6 @@ class Trainer:
         # Returns the training loss and accuracy
         return mean_loss.compute(), accuracy.compute()
 
-    def save_checkpoint(self, output_file_path: str) -> None:
-        """Saves the current state of the model to a file.
-
-        Args:
-            output_path: The path to the file into which the model is to be saved.
-        """
-
-        torch.save(self.model.state_dict(), output_file_path)
-
 
 class Validator:
     """Validates a neural network model."""
@@ -142,11 +133,11 @@ class Validator:
         self.model = self.model.to(self.device)
 
         # Creates the data loaders
-        self.validation_data_loader = torch.data.utils.DataLoader(
-            self.training_subset,
+        self.validation_data_loader = torch.utils.data.DataLoader(
+            self.validation_subset,
             batch_size=self.batch_size,
             num_workers=psutil.cpu_count(logical=False),
-            shuffle=True,
+            shuffle=False,
             drop_last=False,
             pin_memory=True
         )
@@ -155,14 +146,14 @@ class Validator:
         self.loss_function = torch.nn.CrossEntropyLoss().to(self.device)
 
     def validate(self) -> tuple[float, float]:
-        """_summary_
+        """Validates the model.
 
         Returns:
-            tuple[float, float]: _description_
+            tuple[float, float]: Returns the validation loss and the validation accuracy of the model.
         """
 
         # Parts of the model might behave differently during validation as compared to training, therefore, the model is switched to validation mode
-        self.global_model.eval()
+        self.model.eval()
 
         # Since we are only validating the model, the gradient does not have to be computed
         with torch.no_grad():
