@@ -6,7 +6,7 @@ from typing import Union
 
 import torch
 
-from source.fl.lifecycle import Trainer, Validator
+from fl.lifecycle import Trainer, Validator
 
 
 class FederatedLearningClient:
@@ -143,3 +143,21 @@ class FederatedLearningCentralServer:
                     summed_client_model_parameters[parameter_name] += parameters[parameter_name].clone()
         for parameter_name in summed_client_model_parameters:
             global_model_parameters[parameter_name].copy_(summed_client_model_parameters[parameter_name] / len(self.clients))
+
+    def validate(self) -> tuple[float, float]:
+        """Validates the global model of the central server.
+
+        Returns:
+            tuple[float, float]: Returns the validation loss and the validation accuracy of the global model.
+        """
+
+        return self.validator.validate()
+
+    def save_checkpoint(self, output_file_path: str) -> None:
+        """Saves the current state of the global model to a file.
+
+        Args:
+            output_path: The path to the file into which the model is to be saved.
+        """
+
+        torch.save(self.global_model.state_dict(), output_file_path)
