@@ -1,3 +1,9 @@
 
 # Ignores the Python cache
 __pycache__
+
+# Ignores trained neural network models
+*.pt
+
+# Ignores downloaded datasets
+datasets
