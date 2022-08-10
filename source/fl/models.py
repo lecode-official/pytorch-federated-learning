@@ -1,5 +1,6 @@
 """Models used in the federated learning."""
 
+import numpy
 import torch
 
 
@@ -13,10 +14,15 @@ class LeNet5(torch.nn.Module):
 
         self.input_shape = input_shape
 
-        self.convolutional_layer_1 = torch.nn.Conv2d(in_channels=self.input_shape[-1], out_channels=6, kernel_size=5)
+        self.convolutional_layer_1 = torch.nn.Conv2d(in_channels=self.input_shape[0], out_channels=6, kernel_size=5)
+        output_size_after_convolutional_layer_1 = (6, self.input_shape[1] - 4, self.input_shape[2] - 4)
+        output_size_after_max_pooling_1 = (6, output_size_after_convolutional_layer_1[1] // 2, output_size_after_convolutional_layer_1[2] // 2)
         self.convolutional_layer_2 = torch.nn.Conv2d(in_channels=6, out_channels=16, kernel_size=5)
+        output_size_after_convolutional_layer_2 = (16, output_size_after_max_pooling_1[1] - 4, output_size_after_max_pooling_1[2] - 4)
+        output_size_after_max_pooling_2 = (16, output_size_after_convolutional_layer_2[1] // 2, output_size_after_convolutional_layer_2[2] // 2)
 
-        self.fully_connected_layer_1 = torch.nn.Linear(in_features=256, out_features=120)
+        input_size_fully_connected_layer_1 = numpy.prod(output_size_after_max_pooling_2).item()
+        self.fully_connected_layer_1 = torch.nn.Linear(in_features=input_size_fully_connected_layer_1, out_features=120)
         self.fully_connected_layer_2 = torch.nn.Linear(in_features=120, out_features=84)
         self.fully_connected_layer_3 = torch.nn.Linear(in_features=84, out_features=10)
 
