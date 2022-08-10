@@ -18,7 +18,11 @@
         "convolutional",
         "levelname",
         "Mahan",
+        "optim",
+        "psutil",
         "relu",
-        "torchvision"
+        "torchmetrics",
+        "torchvision",
+        "tqdm"
     ]
 }
