@@ -6,12 +6,14 @@ import torch
 class LeNet5(torch.nn.Module):
     """Represents the classical CNN model architecture LeNet5."""
 
-    def __init__(self):
+    def __init__(self, input_shape: tuple[int, int, int]) -> None:
         """Initializes a new LeNet5 instance."""
 
         super(LeNet5, self).__init__()
 
-        self.convolutional_layer_1 = torch.nn.Conv2d(in_channels=1, out_channels=6, kernel_size=5)
+        self.input_shape = input_shape
+
+        self.convolutional_layer_1 = torch.nn.Conv2d(in_channels=self.input_shape[-1], out_channels=6, kernel_size=5)
         self.convolutional_layer_2 = torch.nn.Conv2d(in_channels=6, out_channels=16, kernel_size=5)
 
         self.fully_connected_layer_1 = torch.nn.Linear(in_features=256, out_features=120)
