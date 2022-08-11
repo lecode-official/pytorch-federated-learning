@@ -24,8 +24,10 @@
         "optim",
         "psutil",
         "relu",
+        "Softmax",
         "torchmetrics",
         "torchvision",
-        "tqdm"
+        "tqdm",
+        "Unflatten"
     ]
 }

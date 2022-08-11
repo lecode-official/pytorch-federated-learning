@@ -2,11 +2,173 @@
 
 import logging
 import collections
+from enum import Enum
 from typing import Union
 
 import torch
 
 from fl.lifecycle import Trainer, Validator
+
+
+class AggregationOperator(Enum):
+    """Represents an enumeration for the different aggregation operators that can be used by the federated averaging algorithm to aggregate the
+    parameters of different neural network layer types.
+    """
+
+    MEAN = 'mean'
+    SUM = 'sum'
+
+
+class FederatedAveraging:
+    """Represents the federated averaging (FedAvg) algorithm, which can be used to aggregate the models of the federated learning clients into an
+    updated global model.
+    """
+
+    def __init__(self, global_model: torch.nn.Module) -> None:
+        """Initializes a new FederatedAveraging instance.
+
+        Args:
+            global_model (torch.nn.Module): The global model of the central server, which is used to determine the correct aggregation operators for
+                the parameters of the global model architecture.
+        """
+
+        self.parameter_aggregation_operators = self.get_parameter_aggregation_operators(global_model)
+        self.reset()
+
+    def reset(self) -> None:
+        """Resets the federated averaging algorithm. This is done automatically after updating the global model."""
+
+        self.summed_client_model_parameters = {}
+        self.number_of_contributing_clients = 0
+
+    def add_local_model(self, local_model_parameters: collections.OrderedDict) -> None:
+        """Adds the specified local model to the new aggregated central server model.
+
+        Args:
+            local_model_parameters (collections.OrderedDict): The parameters of the local model of the client that is to be added.
+        """
+
+        # Updates the number of clients that have contributed to the aggregated global model, this is later used to average the parameters that have
+        # the mean aggregation operator
+        self.number_of_contributing_clients += 1
+
+        # Adds the parameters of the specified local model to the aggregation of the parameters that will update the global model
+        for parameter_name, _ in self.parameter_aggregation_operators.items():
+            client_parameter = local_model_parameters[parameter_name].detach().clone()
+            if parameter_name not in self.summed_client_model_parameters:
+                self.summed_client_model_parameters[parameter_name] = client_parameter
+            else:
+                self.summed_client_model_parameters[parameter_name] += client_parameter
+
+    def update_global_model(self, global_model: torch.nn.Module) -> None:
+        """Updates the global model of the federated learning central server with the aggregated weights of the clients.
+
+        Args:
+            global_model (torch.nn.Module): The global model of the federated learning central server, which is to be updated from the client models.
+        """
+
+        global_model_parameters = dict(global_model.named_parameters())
+        for name, parameter in self.summed_client_model_parameters.items():
+            if self.parameter_aggregation_operators[name] == AggregationOperator.MEAN:
+                global_model_parameters[name].data = parameter.data.clone() / self.number_of_contributing_clients
+            else:
+                global_model_parameters[name].data = parameter.data.clone()
+
+        self.reset()
+
+    def get_parameter_aggregation_operators(self, module: torch.nn.Module, parent_name: str = None) -> dict[str, str]:
+        """Different neural network layer types need to be handled differently when aggregating client models into a new global model. For example,
+        the weights and biases of linear layers must be averaged, while the number of tracked batches in a BatchNorm layer have to summed up. This
+        method goes through all layers (called modules in PyTorch) and determines the operator by which their parameters can be aggregated. Since some
+        modules contain other modules themselves, the method goes through all modules recursively.
+
+        Args:
+            module (torch.nn.Module): The module for which the aggregation operator of their child modules have to be determined.
+            parent_name (str, optional): The name of the parent module. When calling this method on a neural network model, nothing needs to be
+                specified. This parameter is only used when by the method itself, when it goes through child modules recursively. Defaults to None.
+
+        Raises:
+            ValueError: When a layer type (module) is detected, which is not supported by this implementation of federated averaging, then an
+                exception is raised. This indicates that the aggregation operator for the parameters of this module kind still needs to be
+                implemented.
+
+        Returns:
+            dict[str, str]: Returns a dictionary, which maps the name of a parameter (which is also the exact name of the parameter in the state
+                dictionary of the model) to the operator that must be used to aggregate this parameter.
+        """
+
+        # Initializes the dictionary that maps the aggregation operator for each parameter of the module
+        parameter_aggregation_operators = {}
+
+        # Creates a tuple containing all supported module types, which have no parameters
+        module_types_without_parameters = (
+            torch.nn.Flatten,
+            torch.nn.Unflatten,
+            torch.nn.ReLU,
+            torch.nn.Sigmoid,
+            torch.nn.LeakyReLU,
+            torch.nn.MaxPool2d,
+            torch.nn.LogSoftmax,
+            torch.nn.AdaptiveAvgPool2d,
+            torch.nn.Dropout
+        )
+
+        # Cycles through the child modules of the specified module to determine the aggregation operator that must be used for their parameters
+        for child_name, child_module in module.named_children():
+
+            # Composes the name of the current module (which corresponds to the name of the module in the state dictionary of the model)
+            child_name = child_name if parent_name is None else f'{parent_name}.{child_name}'
+
+            # For different module types, different operators are needed to aggregate their parameters
+            if isinstance(child_module, torch.nn.Sequential):
+
+                # Sequential modules contains other modules, which are invoked in order, sequential modules do not have any parameters of their own,
+                # so the aggregation operator for the parameters of their child modules need to be determined recursively
+                parameter_aggregation_operators |= self.get_parameter_aggregation_operators(child_module, parent_name=child_name)
+
+            elif isinstance(child_module, (torch.nn.Linear, torch.nn.Conv2d, torch.nn.ConvTranspose2d)):
+
+                # Linear layers, convolutional layers, and transpose convolutional layers have a weight and a bias parameter, which can be aggregated
+                # by averaging them
+                parameter_aggregation_operators[f'{child_name}.weight'] = AggregationOperator.MEAN
+                if child_module.bias is not None:
+                    parameter_aggregation_operators[f'{child_name}.bias'] = AggregationOperator.MEAN
+
+            elif isinstance(child_module, (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d)):
+
+                # BatchNorm layers have a gamma and a beta parameter (the parameters are called 'weight' and 'bias' respectively), a running mean, and
+                # a running variance, which can be aggregated by averaging them, they track the number of batches that they have processed so far,
+                # which can be aggregated by summation
+                if 'bias' in child_module.__dict__ and child_module.bias:
+                    parameter_aggregation_operators[f'{child_name}.weight'] = AggregationOperator.MEAN
+                    parameter_aggregation_operators[f'{child_name}.bias'] = AggregationOperator.MEAN
+                parameter_aggregation_operators[f'{child_name}.running_mean'] = AggregationOperator.MEAN
+                parameter_aggregation_operators[f'{child_name}.running_var'] = AggregationOperator.MEAN
+                parameter_aggregation_operators[f'{child_name}.num_batches_tracked'] = AggregationOperator.SUM
+
+            elif isinstance(child_module, torch.nn.GroupNorm):
+
+                # GroupNorm layers have a weight and a bias parameter, which can be aggregated by averaging them
+                parameter_aggregation_operators[f'{child_name}.weight'] = AggregationOperator.MEAN
+                parameter_aggregation_operators[f'{child_name}.bias'] = AggregationOperator.MEAN
+
+            elif isinstance(child_module, torch.nn.Embedding):
+
+                # Embedding layers have a weight parameter, which can be aggregated by averaging
+                parameter_aggregation_operators[f'{child_name}.weight'] = AggregationOperator.MEAN
+
+            elif isinstance(child_module, module_types_without_parameters):
+
+                # These layers have no parameters, therefore, nothing needs to be done
+                continue
+
+            else:
+
+                # Since this current module type is not supported, yet, an exception is raised
+                raise ValueError(f'The module {child_name} of type {type(child_module)} is not supported by the federated averaging.')
+
+        # Returns the parameter aggregation operators that were determined
+        return parameter_aggregation_operators
 
 
 class FederatedLearningClient:
@@ -115,6 +277,9 @@ class FederatedLearningCentralServer:
         # Initializes the validator for the global model
         self.validator = Validator(self.device, self.global_model, self.central_validation_subset, self.batch_size)
 
+        # Initializes the federated averaging algorithm
+        self.model_aggregation_strategy = FederatedAveraging(self.global_model)
+
     def train_clients_and_update_global_model(self, number_of_local_epochs: int) -> None:
         """Updates the local models of the clients using the parameters of the global model and instructs the clients to train their updated local
         model on their local private training data for the specified number of epochs. Then the global model of the central server is updated by
@@ -125,24 +290,15 @@ class FederatedLearningCentralServer:
         """
 
         # Cycles through all clients, sends them the global model, and instructs them to train their updated local models on their local data
-        client_model_parameters = []
         global_model_parameters = self.global_model.state_dict()
         for index, client in enumerate(self.clients):
             self.logger.info('Training client %d', index + 1)
             training_loss, training_accuracy, local_model_parameters = client.train(global_model_parameters, number_of_local_epochs)
             self.logger.info('Finished training client %d, Training loss: %f, training accuracy %f', index + 1, training_loss, training_accuracy)
-            client_model_parameters.append(local_model_parameters)
+            self.model_aggregation_strategy.add_local_model(local_model_parameters)
 
         # Updates the parameters of the global model by aggregating the updated parameters of the clients using federated averaging (FedAvg)
-        summed_client_model_parameters = {}
-        for parameters in client_model_parameters:
-            for parameter_name in parameters:
-                if parameter_name not in summed_client_model_parameters:
-                    summed_client_model_parameters[parameter_name] = parameters[parameter_name].clone()
-                else:
-                    summed_client_model_parameters[parameter_name] += parameters[parameter_name].clone()
-        for parameter_name in summed_client_model_parameters:
-            global_model_parameters[parameter_name].copy_(summed_client_model_parameters[parameter_name] / len(self.clients))
+        self.model_aggregation_strategy.update_global_model(self.global_model)
 
     def validate(self) -> tuple[float, float]:
         """Validates the global model of the central server.
