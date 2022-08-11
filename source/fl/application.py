@@ -96,6 +96,9 @@ class Application:
             self.logger.info('Finished federated training, saving trained global model to disk (%s)...', command_line_arguments.output_file_path)
             central_server.save_checkpoint(command_line_arguments.output_file_path)
 
+        # Saves the training statistics plot
+        central_server.save_statistics_plot('statistics.png')
+
     def parse_command_line_arguments(self) -> argparse.Namespace:
         """Parses the command line arguments of the application.
 
