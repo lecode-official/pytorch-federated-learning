@@ -17,6 +17,7 @@
         "cifar",
         "convolutional",
         "cuda",
+        "lenet",
         "levelname",
         "Mahan",
         "optim",

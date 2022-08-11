@@ -28,8 +28,8 @@ class FederatedLearningClient:
             local_model (torch.nn.Module): The local model that is to be trained.
             local_training_subset (torch.utils.data.Dataset): The training subset of the local dataset on which the model is to be trained.
             learning_rate (float, optional): The learning rate of the optimizer. Defaults to 0.01.
-            momentum (float, optional): The momentum of the optimizer. Defaults to 0.0005.
-            weight_decay (float, optional): The rate at which the weights are decayed during optimization. Defaults to 0.96.
+            momentum (float, optional): The momentum of the optimizer. Defaults to 0.9.
+            weight_decay (float, optional): The rate at which the weights are decayed during optimization. Defaults to 0.0005.
             batch_size (int, optional): The size of mini-batches that are to be used during training. Defaults to 128.
         """
 

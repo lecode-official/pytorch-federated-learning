@@ -26,6 +26,32 @@ def load_cifar_10(path: str) -> tuple[torch.utils.data.Dataset, torch.utils.data
     return training_subset, validation_subset
 
 
+def create_dataset(dataset_type: str, path: str) -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset, tuple, int]:
+    """Creates the specified dataset.
+
+    Args:
+        dataset_type (str): The type of dataset that is to be created.
+        path (str): The path to the directory that contains the dataset. If the dataset does not exist, it is automatically downloaded.
+
+    Raises:
+        ValueError:
+            If the specified dataset type is not supported or the path is None, an exception is raised.
+
+    Returns:
+        tuple[torch.utils.data.Dataset, torch.utils.data.Dataset, tuple, int]: Returns a tuple containing the training subset and the validation
+            subset of the created dataset, as well as the shape of its samples, and the number of classes.
+    """
+
+    if path is None:
+        raise ValueError('No dataset path was specified.')
+
+    if dataset_type == 'cifar-10':
+        training_subset, validation_subset = load_cifar_10(path)
+        return training_subset, validation_subset, (3, 32, 32), 10
+
+    raise ValueError(f'The dataset type "{dataset_type}" is not supported.')
+
+
 def split_dataset(dataset: torch.utils.data.Dataset, number_of_clients: int) -> list[torch.utils.data.Dataset]:
     """Splits the specified dataset evenly among the specified number of clients.
 
