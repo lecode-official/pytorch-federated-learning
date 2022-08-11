@@ -143,9 +143,9 @@ class Application:
             '--dataset',
             dest='dataset',
             type=str,
-            choices=['cifar-10'],
-            default='cifar-10',
-            help='The dataset that is to be used for the training. Defaults to "cifar-10".'
+            choices=['cifar-10', 'mnist'],
+            default='mnist',
+            help='The dataset that is to be used for the training. Defaults to "mnist".'
         )
         argument_parser.add_argument(
             '-D',
@@ -161,10 +161,10 @@ class Application:
             '--number-of-communication-rounds',
             dest='number_of_communication_rounds',
             type=int,
-            default=10,
+            default=50,
             help='''The number of communication rounds of the federated learning. One communication round consists of sending the global model to the
                 clients, instructing them to perform training on their local dataset, and aggregating their updated local models into a new global
-                model. Defaults to 10.
+                model. Defaults to 50.
             '''
         )
         argument_parser.add_argument(
@@ -172,7 +172,7 @@ class Application:
             '--number-of-local-epochs',
             dest='number_of_local_epochs',
             type=int,
-            default=5,
+            default=2,
             help='The number of communication epochs for which the clients are training the model on their local data. Defaults to 5.'
         )
         argument_parser.add_argument(

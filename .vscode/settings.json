@@ -20,6 +20,7 @@
         "lenet",
         "levelname",
         "Mahan",
+        "mnist",
         "optim",
         "psutil",
         "relu",
