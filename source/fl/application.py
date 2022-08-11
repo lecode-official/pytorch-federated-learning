@@ -8,7 +8,6 @@ import argparse
 
 import torch
 
-from fl.models import create_model
 from fl.datasets import create_dataset, split_dataset
 from fl.federated_learning import FederatedLearningCentralServer, FederatedLearningClient
 
@@ -56,11 +55,12 @@ class Application:
         clients = []
         self.logger.info('Creating %d clients...', command_line_arguments.number_of_clients)
         for index in range(command_line_arguments.number_of_clients):
-            client_local_model = create_model(command_line_arguments.model, input_shape=sample_shape, number_of_classes=number_of_classes)
             clients.append(FederatedLearningClient(
                 device,
-                client_local_model,
+                command_line_arguments.model,
                 client_subsets[index],
+                sample_shape,
+                number_of_classes,
                 command_line_arguments.learning_rate,
                 command_line_arguments.momentum,
                 command_line_arguments.weight_decay,
@@ -69,8 +69,15 @@ class Application:
 
         # Creates the central server
         self.logger.info('Creating central server...')
-        global_model = create_model(command_line_arguments.model, input_shape=sample_shape, number_of_classes=number_of_classes)
-        central_server = FederatedLearningCentralServer(clients, device, global_model, validation_subset, command_line_arguments.batch_size)
+        central_server = FederatedLearningCentralServer(
+            clients,
+            device,
+            command_line_arguments.model,
+            validation_subset,
+            sample_shape,
+            number_of_classes,
+            command_line_arguments.batch_size
+        )
 
         # Performs the federated training for the specified number of communication rounds
         for communication_round in range(1, command_line_arguments.number_of_communication_rounds + 1):

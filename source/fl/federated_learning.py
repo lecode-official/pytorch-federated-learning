@@ -7,6 +7,7 @@ from typing import Union
 
 import torch
 
+from fl.models import create_model
 from fl.lifecycle import Trainer, Validator
 
 
@@ -33,7 +34,9 @@ class FederatedAveraging:
         """
 
         self.parameter_aggregation_operators = self.get_parameter_aggregation_operators(global_model)
-        self.reset()
+
+        self.summed_client_model_parameters = {}
+        self.number_of_contributing_clients = 0
 
     def reset(self) -> None:
         """Resets the federated averaging algorithm. This is done automatically after updating the global model."""
@@ -177,8 +180,10 @@ class FederatedLearningClient:
     def __init__(
             self,
             device: Union[str, torch.device],
-            local_model: torch.nn.Module,
+            local_model_type: str,
             local_training_subset: torch.utils.data.Dataset,
+            sample_shape: tuple,
+            number_of_classes: int,
             learning_rate: float = 0.01,
             momentum: float = 0.9,
             weight_decay: float = 0.0005,
@@ -187,33 +192,25 @@ class FederatedLearningClient:
 
         Args:
             device (Union[str, torch.device]): The device on which the local model is to be trained.
-            local_model (torch.nn.Module): The local model that is to be trained.
+            local_model_type (str): The type of local model that is to be trained.
             local_training_subset (torch.utils.data.Dataset): The training subset of the local dataset on which the model is to be trained.
+            sample_shape (tuple): The shape of the samples in the dataset.
+            number_of_classes (int): The number of classes in the dataset.
             learning_rate (float, optional): The learning rate of the optimizer. Defaults to 0.01.
             momentum (float, optional): The momentum of the optimizer. Defaults to 0.9.
             weight_decay (float, optional): The rate at which the weights are decayed during optimization. Defaults to 0.0005.
             batch_size (int, optional): The size of mini-batches that are to be used during training. Defaults to 128.
         """
 
-        # Stores the arguments for later use
         self.device = device
-        self.local_model = local_model
+        self.local_model_type = local_model_type
         self.local_training_subset = local_training_subset
+        self.sample_shape = sample_shape
+        self.number_of_classes = number_of_classes
         self.learning_rate = learning_rate
         self.momentum = momentum
         self.weight_decay = weight_decay
         self.batch_size = batch_size
-
-        # Initializes the trainer for the model
-        self.trainer = Trainer(
-            self.device,
-            self.local_model,
-            self.local_training_subset,
-            self.learning_rate,
-            self.momentum,
-            self.weight_decay,
-            self.batch_size
-        )
 
     def train(self, global_model_parameters: collections.OrderedDict, number_of_epochs: int) -> tuple[float, float, collections.OrderedDict]:
         """Trains the local model on the local data of the client.
@@ -228,10 +225,24 @@ class FederatedLearningClient:
                 parameters of the local model of the client.
         """
 
+        # Creates the local model
+        local_model = create_model(self.local_model_type, input_shape=self.sample_shape, number_of_classes=self.number_of_classes)
+
         # Copies the parameters of the global model
-        local_model_parameters = self.local_model.state_dict()
+        local_model_parameters = local_model.state_dict()
         for parameter_name in global_model_parameters:
             local_model_parameters[parameter_name].copy_(global_model_parameters[parameter_name])
+
+        # Creates the trainer for the model
+        self.trainer = Trainer(
+            self.device,
+            local_model,
+            self.local_training_subset,
+            self.learning_rate,
+            self.momentum,
+            self.weight_decay,
+            self.batch_size
+        )
 
         # Trains the local model for the specified amount of epochs and saves the training loss and accuracy
         training_loss = None
@@ -250,31 +261,37 @@ class FederatedLearningCentralServer:
             self,
             clients: list[FederatedLearningClient],
             device: Union[str, torch.device],
-            global_model: torch.nn.Module,
+            global_model_type: str,
             central_validation_subset: torch.utils.data.Dataset,
+            sample_shape: tuple,
+            number_of_classes: int,
             batch_size: int = 128) -> None:
         """Initializes a new FederatedLearningCentralServer instance.
 
         Args:
             clients (list[FederatedLearningClient]): The federated learning clients.
             device (Union[str, torch.device]): The device on which the global model of the central server is to be validated.
-            global_model (torch.nn.Module): The global model of the central server, which is distributed to the federated learning clients for
-                training.
+            global_model_type (str): The type of model that is to be used as global model for the central server.
             central_validation_subset (torch.utils.data.Dataset): The validation subset on which the global model is to be validated.
+            sample_shape (tuple): The shape of the samples in the dataset.
+            number_of_classes (int): The number of classes in the dataset.
             batch_size (int, optional): The size of the mini-batches that are to be used during the validation. Defaults to 128.
         """
 
         # Stores the arguments for later use
         self.clients = clients
         self.device = device
-        self.global_model = global_model
+        self.global_model_type = global_model_type
         self.central_validation_subset = central_validation_subset
+        self.sample_shape = sample_shape
+        self.number_of_classes = number_of_classes
         self.batch_size = batch_size
 
         # Initializes the logger
         self.logger = logging.getLogger(__name__ + '.' + self.__class__.__name__)
 
-        # Initializes the validator for the global model
+        # Creates the global model and the validator for it
+        self.global_model = create_model(self.global_model_type, input_shape=self.sample_shape, number_of_classes=self.number_of_classes)
         self.validator = Validator(self.device, self.global_model, self.central_validation_subset, self.batch_size)
 
         # Initializes the federated averaging algorithm
