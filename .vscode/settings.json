@@ -25,6 +25,7 @@
         "horizontalalignment",
         "labelbottom",
         "labelleft",
+        "labelright",
         "lenet",
         "levelname",
         "linewidth",

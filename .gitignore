@@ -7,3 +7,6 @@ __pycache__
 
 # Ignores downloaded datasets
 datasets
+
+# Ignores training statistics plots
+*.png

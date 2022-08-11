@@ -359,6 +359,14 @@ class FederatedLearningCentralServer:
         figure = pyplot.figure(figsize=(10, 5), dpi=300, tight_layout=True)
         grid_specification = figure.add_gridspec(ncols=width+1, nrows=height, width_ratios=[2 * width] + [1] * width)
 
+        # Determines the limits of the y-axis for the loss, so that the y-axes of the central server and the clients are all on the same scale (the
+        # accuracy is bounded between 0 and 1, but the loss can grow almost arbitrarily)
+        loss_axis_upper_y_limit = max([loss for losses in self.client_training_losses for loss in losses] + self.central_server_validation_losses)
+
+        # Determines the final validation loss and validation accuracy of the global model
+        final_central_server_validation_loss = self.central_server_validation_losses[-1]
+        final_central_server_validation_accuracy = self.central_server_validation_accuracies[-1]
+
         # Creates the plot for the validation loss and validation accuracy of the central server
         communication_rounds = list(range(1, len(self.central_server_validation_accuracies) + 1))
         central_server_validation_accuracy_axis = figure.add_subplot(grid_specification[:, 0])
@@ -371,8 +379,9 @@ class FederatedLearningCentralServer:
             self.central_server_validation_accuracies,
             color='blue',
             linewidth=0.5,
-            label='Accuracy'
+            label=f'Accuracy (Final Accuracy: {final_central_server_validation_accuracy:.2})'
         )
+        accuracy_handles, accuracy_labels = central_server_validation_accuracy_axis.get_legend_handles_labels()
         central_server_validation_loss_axis = central_server_validation_accuracy_axis.twinx()
         central_server_validation_loss_axis.set_ylabel('Validation Loss')
         central_server_validation_loss_axis.plot(
@@ -380,20 +389,28 @@ class FederatedLearningCentralServer:
             self.central_server_validation_losses,
             color='red',
             linewidth=0.5,
-            label='Loss'
+            label=f'Loss (Final Loss: {final_central_server_validation_loss:.2})'
         )
-        loss_axis_y_limit = central_server_validation_loss_axis.get_ylim()
+        central_server_validation_loss_axis.set_ylim((0.0, loss_axis_upper_y_limit))
+        loss_handles, loss_labels = central_server_validation_loss_axis.get_legend_handles_labels()
+        central_server_validation_accuracy_axis.legend(accuracy_handles + loss_handles, accuracy_labels + loss_labels)
 
         # Creates the plots for the training loss and training accuracy of the clients
         federated_learning_client_index = 0
         for column in range(1, width + 1):
             for row in range(height):
                 federated_learning_client_training_accuracy_axis = figure.add_subplot(grid_specification[row, column])
-                #federated_learning_client_training_accuracy_axis.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
+                federated_learning_client_training_accuracy_axis.tick_params(
+                    color='white',
+                    left=False,
+                    bottom=False,
+                    labelleft=False,
+                    labelbottom=False
+                )
                 federated_learning_client_training_accuracy_axis.set_ylim(0.0, 1.0)
                 federated_learning_client_training_accuracy_axis.text(
                     0.5,
-                    0.2,
+                    0.1,
                     str(federated_learning_client_index + 1),
                     horizontalalignment='center',
                     verticalalignment='center',
@@ -407,8 +424,8 @@ class FederatedLearningCentralServer:
                     linewidth=0.5
                 )
                 federated_learning_client_training_loss_axis = federated_learning_client_training_accuracy_axis.twinx()
-                federated_learning_client_training_loss_axis.set_ylim(loss_axis_y_limit)
-                #federated_learning_client_training_loss_axis.tick_params(left=False, right=False, bottom=False, labelleft=False, labelbottom=False)
+                federated_learning_client_training_loss_axis.set_ylim((0.0, loss_axis_upper_y_limit))
+                federated_learning_client_training_loss_axis.tick_params(right=False, labelright=False)
                 federated_learning_client_training_loss_axis.plot(
                     communication_rounds,
                     self.client_training_losses[federated_learning_client_index],

@@ -35,7 +35,7 @@ class Application:
         if command_line_arguments.dataset_path is None:
             self.logger.error('No dataset path was specified. Exiting.')
             sys.exit(1)
-        if command_line_arguments.output_file_path is None:
+        if command_line_arguments.model_output_file_path is None:
             self.logger.warn('No output path was specified, so the trained global model will not be saved.')
 
         # Selects the device the training and validation will be performed on
@@ -92,12 +92,20 @@ class Application:
             )
 
         # Saves the trained global to disk
-        if command_line_arguments.output_file_path is not None:
-            self.logger.info('Finished federated training, saving trained global model to disk (%s)...', command_line_arguments.output_file_path)
-            central_server.save_checkpoint(command_line_arguments.output_file_path)
+        if command_line_arguments.model_output_file_path is not None:
+            self.logger.info(
+                'Finished federated training, saving trained global model to disk (%s)...',
+                command_line_arguments.model_output_file_path
+            )
+            central_server.save_checkpoint(command_line_arguments.model_output_file_path)
 
         # Saves the training statistics plot
-        central_server.save_statistics_plot('statistics.png')
+        if command_line_arguments.statistics_plot_output_file_path is not None:
+            self.logger.info(
+                'Plotting training statistics and saving the plot to disk (%s)...',
+                command_line_arguments.statistics_plot_output_file_path
+            )
+            central_server.save_statistics_plot(command_line_arguments.statistics_plot_output_file_path)
 
     def parse_command_line_arguments(self) -> argparse.Namespace:
         """Parses the command line arguments of the application.
@@ -187,10 +195,17 @@ class Application:
         )
         argument_parser.add_argument(
             '-o',
-            '--output-file-path',
-            dest='output_file_path',
+            '--model-output-file-path',
+            dest='model_output_file_path',
             type=str,
             help='The path to the file into which the trained global model is to be stored. If no path is specified, the model is not saved.'
+        )
+        argument_parser.add_argument(
+            '-p',
+            '--statistics-plot-output-file-path',
+            dest='statistics_plot_output_file_path',
+            type=str,
+            help='The path to the file into which the training statistics plot is to be stored. If no path is specified, the plot is not saved.'
         )
         argument_parser.add_argument(
             '-l',
