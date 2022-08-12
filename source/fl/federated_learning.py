@@ -183,6 +183,7 @@ class FederatedLearningClient:
 
     def __init__(
             self,
+            client_id: int,
             device: Union[str, torch.device],
             local_model_type: str,
             local_training_subset: torch.utils.data.Dataset,
@@ -195,6 +196,7 @@ class FederatedLearningClient:
         """Initializes a new FederatedLearningClient instance.
 
         Args:
+            client_id (int): An ID, which uniquely identifies the client.
             device (Union[str, torch.device]): The device on which the local model is to be trained.
             local_model_type (str): The type of local model that is to be trained.
             local_training_subset (torch.utils.data.Dataset): The training subset of the local dataset on which the model is to be trained.
@@ -206,6 +208,7 @@ class FederatedLearningClient:
             batch_size (int, optional): The size of mini-batches that are to be used during training. Defaults to 128.
         """
 
+        self.client_id = client_id
         self.device = device
         self.local_model_type = local_model_type
         self.local_training_subset = local_training_subset
@@ -338,12 +341,17 @@ class FederatedLearningCentralServer:
 
         # Cycles through all clients, sends them the global model, and instructs them to train their updated local models on their local data
         global_model_parameters = self.global_model.state_dict()
-        for index, client in enumerate(client_subsample):
-            self.logger.info('Training client %d', index + 1)
+        for client in client_subsample:
+            self.logger.info('Training client %d', client.client_id)
             training_loss, training_accuracy, local_model_parameters = client.train(global_model_parameters, number_of_local_epochs)
-            self.client_training_losses[index].append(training_loss)
-            self.client_training_accuracies[index].append(training_accuracy)
-            self.logger.info('Finished training client %d, Training loss: %f, training accuracy %f', index + 1, training_loss, training_accuracy)
+            self.client_training_losses[client.client_id - 1].append(training_loss)
+            self.client_training_accuracies[client.client_id - 1].append(training_accuracy)
+            self.logger.info(
+                'Finished training client %d, Training loss: %f, training accuracy %f',
+                client.client_id,
+                training_loss,
+                training_accuracy
+            )
             self.model_aggregation_strategy.add_local_model(local_model_parameters)
 
         # Updates the parameters of the global model by aggregating the updated parameters of the clients using federated averaging (FedAvg)

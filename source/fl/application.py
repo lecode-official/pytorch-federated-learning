@@ -61,6 +61,7 @@ class Application:
         self.logger.info('Creating %d clients...', command_line_arguments.number_of_clients)
         for index in range(command_line_arguments.number_of_clients):
             clients.append(FederatedLearningClient(
+                index + 1,
                 device,
                 command_line_arguments.model,
                 client_subsets[index],
