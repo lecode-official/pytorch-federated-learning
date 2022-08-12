@@ -1,4 +1,4 @@
-"""Contains the actual entrypoint to the application."""
+"""Contains the actual Federated Learning Simulator application."""
 
 __version__ = '0.1.0'
 

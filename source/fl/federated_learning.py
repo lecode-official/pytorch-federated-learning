@@ -7,6 +7,7 @@ from typing import Union
 
 import torch
 import matplotlib
+from tqdm import tqdm
 from matplotlib import pyplot
 
 from fl.models import create_model
@@ -355,9 +356,9 @@ class FederatedLearningCentralServer:
         matplotlib.rcParams['font.family'] = 'STIXGeneral'
 
         # Creates the figure
-        width, height = self.determine_optimal_grid_size(len(self.clients), prefer_larger_width=False)
-        figure = pyplot.figure(figsize=(10, 5), dpi=300, tight_layout=True)
-        grid_specification = figure.add_gridspec(ncols=width+1, nrows=height, width_ratios=[2 * width] + [1] * width)
+        width, height = self.determine_optimal_grid_size(len(self.clients), prefer_larger_width=True)
+        figure = pyplot.figure(figsize=(int(2.5 * width), height), dpi=300)
+        grid_specification = figure.add_gridspec(ncols=width + 1, nrows=height, width_ratios=[width] + [1] * width)
 
         # Determines the limits of the y-axis for the loss, so that the y-axes of the central server and the clients are all on the same scale (the
         # accuracy is bounded between 0 and 1, but the loss can grow almost arbitrarily)
@@ -396,43 +397,45 @@ class FederatedLearningCentralServer:
         central_server_validation_accuracy_axis.legend(accuracy_handles + loss_handles, accuracy_labels + loss_labels)
 
         # Creates the plots for the training loss and training accuracy of the clients
-        federated_learning_client_index = 0
-        for column in range(1, width + 1):
-            for row in range(height):
-                federated_learning_client_training_accuracy_axis = figure.add_subplot(grid_specification[row, column])
-                federated_learning_client_training_accuracy_axis.tick_params(
-                    color='white',
-                    left=False,
-                    bottom=False,
-                    labelleft=False,
-                    labelbottom=False
-                )
-                federated_learning_client_training_accuracy_axis.set_ylim(0.0, 1.0)
-                federated_learning_client_training_accuracy_axis.text(
-                    0.5,
-                    0.1,
-                    str(federated_learning_client_index + 1),
-                    horizontalalignment='center',
-                    verticalalignment='center',
-                    fontsize='small',
-                    transform=federated_learning_client_training_accuracy_axis.transAxes
-                )
-                federated_learning_client_training_accuracy_axis.plot(
-                    communication_rounds,
-                    self.client_training_accuracies[federated_learning_client_index],
-                    color='blue',
-                    linewidth=0.5
-                )
-                federated_learning_client_training_loss_axis = federated_learning_client_training_accuracy_axis.twinx()
-                federated_learning_client_training_loss_axis.set_ylim((0.0, loss_axis_upper_y_limit))
-                federated_learning_client_training_loss_axis.tick_params(right=False, labelright=False)
-                federated_learning_client_training_loss_axis.plot(
-                    communication_rounds,
-                    self.client_training_losses[federated_learning_client_index],
-                    color='red',
-                    linewidth=0.5
-                )
-                federated_learning_client_index += 1
+        with tqdm(total=len(self.clients), desc=f'Plotting', unit='clients') as progress_bar:
+            federated_learning_client_index = 0
+            for column in range(1, width + 1):
+                for row in range(height):
+                    federated_learning_client_training_accuracy_axis = figure.add_subplot(grid_specification[row, column])
+                    federated_learning_client_training_accuracy_axis.tick_params(
+                        color='white',
+                        left=False,
+                        bottom=False,
+                        labelleft=False,
+                        labelbottom=False
+                    )
+                    federated_learning_client_training_accuracy_axis.set_ylim(0.0, 1.0)
+                    federated_learning_client_training_accuracy_axis.text(
+                        0.5,
+                        0.1,
+                        str(federated_learning_client_index + 1),
+                        horizontalalignment='center',
+                        verticalalignment='center',
+                        fontsize='small',
+                        transform=federated_learning_client_training_accuracy_axis.transAxes
+                    )
+                    federated_learning_client_training_accuracy_axis.plot(
+                        communication_rounds,
+                        self.client_training_accuracies[federated_learning_client_index],
+                        color='blue',
+                        linewidth=0.5
+                    )
+                    federated_learning_client_training_loss_axis = federated_learning_client_training_accuracy_axis.twinx()
+                    federated_learning_client_training_loss_axis.set_ylim((0.0, loss_axis_upper_y_limit))
+                    federated_learning_client_training_loss_axis.tick_params(right=False, labelright=False)
+                    federated_learning_client_training_loss_axis.plot(
+                        communication_rounds,
+                        self.client_training_losses[federated_learning_client_index],
+                        color='red',
+                        linewidth=0.5
+                    )
+                    federated_learning_client_index += 1
+                    progress_bar.update(1)
 
         # Creates an invisible axis, which is just a hack to place a title above the client plots
         federated_learning_client_title_axis = figure.add_subplot(grid_specification[:, 1:])
@@ -446,6 +449,8 @@ class FederatedLearningCentralServer:
         federated_learning_client_title_axis.set_title('Clients')
 
         # Saves the plot
+        figure.tight_layout()
+        grid_specification.tight_layout(figure)
         figure.savefig(output_file_path)
 
     def determine_optimal_grid_size(self, number_of_elements: int, prefer_larger_width: bool) -> list[int]:
