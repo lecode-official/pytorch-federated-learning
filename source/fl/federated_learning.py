@@ -236,7 +236,7 @@ class FederatedLearningClient:
             local_model_parameters[parameter_name].copy_(global_model_parameters[parameter_name])
 
         # Creates the trainer for the model
-        self.trainer = Trainer(
+        trainer = Trainer(
             self.device,
             local_model,
             self.local_training_subset,
@@ -250,10 +250,10 @@ class FederatedLearningClient:
         training_loss = None
         training_accuracy = None
         for _ in range(number_of_epochs):
-            training_loss, training_accuracy = self.trainer.train_for_one_epoch()
+            training_loss, training_accuracy = trainer.train_for_one_epoch()
 
         # Returns the training loss, training accuracy, and the updated parameters of the local model
-        return training_loss.cpu().numpy().item(), training_accuracy.cpu().numpy().item(), self.trainer.model.state_dict()
+        return training_loss, training_accuracy, trainer.model.state_dict()
 
 
 class FederatedLearningCentralServer:
@@ -335,8 +335,8 @@ class FederatedLearningCentralServer:
         """
 
         validation_loss, validation_accuracy = self.validator.validate()
-        validation_loss = validation_loss.cpu().numpy().item()
-        validation_accuracy = validation_accuracy.cpu().numpy().item()
+        validation_loss = validation_loss
+        validation_accuracy = validation_accuracy
 
         self.central_server_validation_losses.append(validation_loss)
         self.central_server_validation_accuracies.append(validation_accuracy)

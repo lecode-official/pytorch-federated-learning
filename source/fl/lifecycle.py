@@ -102,7 +102,7 @@ class Trainer:
             self.optimizer.step()
 
         # Returns the training loss and accuracy
-        return mean_loss.compute(), accuracy.compute()
+        return mean_loss.compute().cpu().numpy().item(), accuracy.compute().cpu().numpy().item()
 
 
 class Validator:
@@ -178,4 +178,4 @@ class Validator:
                 accuracy.update(predictions, targets)
 
             # Computes the validation metrics and returns them
-            return mean_loss.compute(), accuracy.compute()
+            return mean_loss.compute().cpu().numpy().item(), accuracy.compute().cpu().numpy().item()
