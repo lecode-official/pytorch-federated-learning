@@ -1,5 +1,6 @@
 """Implementation of the federated learning protocol and federated averaging (FedAvg)."""
 
+import random
 import logging
 import collections
 from enum import Enum
@@ -263,6 +264,7 @@ class FederatedLearningCentralServer:
     def __init__(
             self,
             clients: list[FederatedLearningClient],
+            number_of_clients_per_communication_round: int,
             device: Union[str, torch.device],
             global_model_type: str,
             central_validation_subset: torch.utils.data.Dataset,
@@ -273,16 +275,32 @@ class FederatedLearningCentralServer:
 
         Args:
             clients (list[FederatedLearningClient]): The federated learning clients.
+            number_of_clients_per_communication_round (int): One of the primary bottlenecks in the communication between the central server and its
+                clients is the number of clients that the central server has to communicate with in each communication round. One easy method of
+                reducing this overhead, is to subsample the client population. In each communication round, the central server only selects a subset
+                of clients, which will train and communicate their updates back. This parameter specifies the number of clients that will be selected
+                at random in each communication round.
             device (Union[str, torch.device]): The device on which the global model of the central server is to be validated.
             global_model_type (str): The type of model that is to be used as global model for the central server.
             central_validation_subset (torch.utils.data.Dataset): The validation subset on which the global model is to be validated.
             sample_shape (tuple): The shape of the samples in the dataset.
             number_of_classes (int): The number of classes in the dataset.
             batch_size (int, optional): The size of the mini-batches that are to be used during the validation. Defaults to 128.
+
+        Raises:
+            ValueError: When the number of clients per communication round is less than 1 or more than the total number of clients, a ValueError is
+                raised.
         """
+
+        # Validates the arguments
+        if number_of_clients_per_communication_round < 1:
+            raise ValueError('At least one client must be selected for training in each communication round.')
+        if number_of_clients_per_communication_round > len(clients):
+            raise ValueError('The number of clients to select for each communication round is greater than the number of clients.')
 
         # Stores the arguments for later use
         self.clients = clients
+        self.number_of_clients_per_communication_round = number_of_clients_per_communication_round
         self.device = device
         self.global_model_type = global_model_type
         self.central_validation_subset = central_validation_subset
@@ -315,9 +333,12 @@ class FederatedLearningCentralServer:
             number_of_local_epochs (int): The number of epochs for which the clients should train the model on their local data.
         """
 
+        # Selects a subsample of the client population for the current communication round
+        client_subsample = random.sample(self.clients, self.number_of_clients_per_communication_round)
+
         # Cycles through all clients, sends them the global model, and instructs them to train their updated local models on their local data
         global_model_parameters = self.global_model.state_dict()
-        for index, client in enumerate(self.clients):
+        for index, client in enumerate(client_subsample):
             self.logger.info('Training client %d', index + 1)
             training_loss, training_accuracy, local_model_parameters = client.train(global_model_parameters, number_of_local_epochs)
             self.client_training_losses[index].append(training_loss)
