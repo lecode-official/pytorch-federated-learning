@@ -341,8 +341,8 @@ class FederatedLearningCentralServer:
 
         # Cycles through all clients, sends them the global model, and instructs them to train their updated local models on their local data
         global_model_parameters = self.global_model.state_dict()
-        for client in client_subsample:
-            self.logger.info('Training client %d', client.client_id)
+        for index, client in enumerate(client_subsample):
+            self.logger.info('Training client %d (%d/%d)...', client.client_id, index + 1, self.number_of_clients_per_communication_round)
             training_loss, training_accuracy, local_model_parameters = client.train(global_model_parameters, number_of_local_epochs)
             self.client_training_losses[client.client_id - 1].append(training_loss)
             self.client_training_accuracies[client.client_id - 1].append(training_accuracy)
