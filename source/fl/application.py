@@ -30,13 +30,18 @@ class Application:
     def run(self) -> None:
         """Runs the application."""
 
-        # Parses the command line arguments
+        # Parses and validates the command line arguments
         command_line_arguments = self.parse_command_line_arguments()
         if command_line_arguments.dataset_path is None:
             self.logger.error('No dataset path was specified. Exiting.')
             sys.exit(1)
         if command_line_arguments.model_output_file_path is None:
             self.logger.warn('No output path was specified, so the trained global model will not be saved.')
+        if command_line_arguments.number_of_clients > 250 and command_line_arguments.statistics_plot_output_file_path is not None:
+            self.logger.warn('Plotting the training statistics plot for more than 250 clients will take a long time and is discouraged.')
+        if command_line_arguments.number_of_clients > 1000 and command_line_arguments.statistics_plot_output_file_path is not None:
+            self.logger.error('Plotting the training statistics plot for more than 1000 will take too long. Existing.')
+            sys.exit(1)
 
         # Selects the device the training and validation will be performed on
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
