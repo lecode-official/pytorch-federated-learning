@@ -16,7 +16,6 @@ from fl.federated_learning import FederatedLearningCentralServer, FederatedLearn
 class Application:
     """Represents the federated learning application."""
 
-
     def __init__(self) -> None:
         """Initializes a new Application instance."""
 

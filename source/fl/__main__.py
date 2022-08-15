@@ -1,6 +1,6 @@
 """The entrypoint of the fl package."""
 
-from fl import Application
+from fl.application import Application
 
 APPLICATION = Application()
 APPLICATION.run()
