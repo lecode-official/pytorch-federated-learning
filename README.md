@@ -44,13 +44,13 @@ conda env update --file environment.yaml --prune
 To train models using federated learning and federated averaging, you can use the `fl` package. You have to specify the model that you want to train, the dataset that you want to train the model on, the path to the dataset, the number of communication rounds, the number of clients, and the path to the file into which the trained global model will be saved after the training. The following command will train a LeNet-5 on MNIST for 20 communication rounds with 10 clients and save the resulting global model into a file called `lenet-5-mnist-trained-global-model.pt`. The dataset is expected to be in the `./datasets/mnist` directory. If it does not exist, yet, it is automatically downloaded.
 
 ```bash
-python -m fl \
+python -m fl federated-averaging \
     --model lenet-5
     --dataset mnist \
     --dataset-path ./datasets/mnist \
     --number-of-clients 10 \
     --number-of-communication-rounds 20 \
-    --model-output-file-path lenet-5-mnist-trained-global-model.pt \
+    --output-path ./experiments
 ```
 
 Currently the following models and datasets are supported:

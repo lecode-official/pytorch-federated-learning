@@ -2,11 +2,10 @@
 # Ignores the Python cache
 __pycache__
 
-# Ignores trained neural network models
+# Ignores output files of trainings (files that are in an experiments directory, PyTorch model checkpoint files, and plot images)
+experiments
 *.pt
+*.png
 
 # Ignores downloaded datasets
 datasets
-
-# Ignores training statistics plots
-*.png

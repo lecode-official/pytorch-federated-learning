@@ -6,6 +6,7 @@ import collections
 from enum import Enum
 from typing import Optional, Union
 
+import numpy
 import torch
 import matplotlib
 from tqdm import tqdm
@@ -379,6 +380,14 @@ class FederatedLearningCentralServer:
             )
             self.model_aggregation_strategy.add_local_model(local_model_parameters)
 
+        # Since client sub-sampling is used, all clients that did not participate in this communication round do not have any values in their training
+        # statistics, therefore, NaN is added as training loss/accuracy for all clients that did not participate (when plotting these, the NaN values
+        # will appear as gaps in the plot, which is what we would expect)
+        for client in self.clients:
+            if client not in client_subsample:
+                self.client_training_losses[client.client_id - 1].append(numpy.nan)
+                self.client_training_accuracies[client.client_id - 1].append(numpy.nan)
+
         # Updates the parameters of the global model by aggregating the updated parameters of the clients using federated averaging (FedAvg)
         self.model_aggregation_strategy.update_global_model(self.global_model)
 
@@ -390,8 +399,6 @@ class FederatedLearningCentralServer:
         """
 
         validation_loss, validation_accuracy = self.validator.validate()
-        validation_loss = validation_loss
-        validation_accuracy = validation_accuracy
 
         self.central_server_validation_losses.append(validation_loss)
         self.central_server_validation_accuracies.append(validation_accuracy)
@@ -416,14 +423,20 @@ class FederatedLearningCentralServer:
         matplotlib.rcParams['mathtext.fontset'] = 'stix'
         matplotlib.rcParams['font.family'] = 'STIXGeneral'
 
+        # Plotting more than 100 clients becomes really slow and the resulting plots are gigantic, therefore, only the first 100 clients are plotted
+        # if the number of clients exceeds 100
+        clients_to_plot = self.clients[:100]
+        client_training_losses = self.client_training_losses[:100]
+        client_training_accuracies = self.client_training_accuracies[:100]
+
         # Creates the figure
-        width, height = self.determine_optimal_grid_size(len(self.clients), prefer_larger_width=True)
+        width, height = self.determine_optimal_grid_size(len(clients_to_plot), prefer_larger_width=True)
         figure = pyplot.figure(figsize=(int(2.5 * width), height), dpi=300)
         grid_specification = figure.add_gridspec(ncols=width + 1, nrows=height, width_ratios=[width] + [1] * width)
 
         # Determines the limits of the y-axis for the loss, so that the y-axes of the central server and the clients are all on the same scale (the
         # accuracy is bounded between 0 and 1, but the loss can grow almost arbitrarily)
-        loss_axis_upper_y_limit = max([loss for losses in self.client_training_losses for loss in losses] + self.central_server_validation_losses)
+        loss_axis_upper_y_limit = numpy.nanmax([loss for losses in client_training_losses for loss in losses] + self.central_server_validation_losses)
 
         # Determines the final validation loss and validation accuracy of the global model
         final_central_server_validation_loss = self.central_server_validation_losses[-1]
@@ -440,6 +453,8 @@ class FederatedLearningCentralServer:
             self.central_server_validation_accuracies,
             color='blue',
             linewidth=0.5,
+            marker='.',
+            markersize=8,
             label=f'Accuracy (Final Accuracy: {final_central_server_validation_accuracy:.2})'
         )
         accuracy_handles, accuracy_labels = central_server_validation_accuracy_axis.get_legend_handles_labels()
@@ -450,6 +465,8 @@ class FederatedLearningCentralServer:
             self.central_server_validation_losses,
             color='red',
             linewidth=0.5,
+            marker='.',
+            markersize=8,
             label=f'Loss (Final Loss: {final_central_server_validation_loss:.2})'
         )
         central_server_validation_loss_axis.set_ylim((0.0, loss_axis_upper_y_limit))
@@ -457,7 +474,7 @@ class FederatedLearningCentralServer:
         central_server_validation_accuracy_axis.legend(accuracy_handles + loss_handles, accuracy_labels + loss_labels)
 
         # Creates the plots for the training loss and training accuracy of the clients
-        with tqdm(total=len(self.clients), desc=f'Plotting', unit='clients') as progress_bar:
+        with tqdm(total=len(clients_to_plot), desc=f'Plotting', unit='clients') as progress_bar:
             federated_learning_client_index = 0
             for column in range(1, width + 1):
                 for row in range(height):
@@ -480,19 +497,23 @@ class FederatedLearningCentralServer:
                         transform=federated_learning_client_training_accuracy_axis.transAxes
                     )
                     federated_learning_client_training_accuracy_axis.plot(
-                        list(range(1, len(self.client_training_accuracies[federated_learning_client_index]) + 1)),
-                        self.client_training_accuracies[federated_learning_client_index],
+                        list(range(1, len(client_training_accuracies[federated_learning_client_index]) + 1)),
+                        client_training_accuracies[federated_learning_client_index],
                         color='blue',
-                        linewidth=0.5
+                        linewidth=0.5,
+                        marker='.',
+                        markersize=4
                     )
                     federated_learning_client_training_loss_axis = federated_learning_client_training_accuracy_axis.twinx()
                     federated_learning_client_training_loss_axis.set_ylim((0.0, loss_axis_upper_y_limit))
                     federated_learning_client_training_loss_axis.tick_params(right=False, labelright=False)
                     federated_learning_client_training_loss_axis.plot(
-                        list(range(1, len(self.client_training_losses[federated_learning_client_index]) + 1)),
-                        self.client_training_losses[federated_learning_client_index],
+                        list(range(1, len(client_training_losses[federated_learning_client_index]) + 1)),
+                        client_training_losses[federated_learning_client_index],
                         color='red',
-                        linewidth=0.5
+                        linewidth=0.5,
+                        marker='.',
+                        markersize=4
                     )
                     federated_learning_client_index += 1
                     progress_bar.update(1)
