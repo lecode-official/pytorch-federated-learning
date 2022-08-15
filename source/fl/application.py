@@ -3,14 +3,11 @@
 __version__ = '0.1.0'
 
 import sys
-import signal
 import logging
 import argparse
+import traceback
 
-import torch
-
-from fl.datasets import create_dataset, split_dataset
-from fl.federated_learning import FederatedLearningCentralServer, FederatedLearningClient
+from fl.commands import get_command_descriptors, get_command
 
 
 class Application:
@@ -19,7 +16,6 @@ class Application:
     def __init__(self) -> None:
         """Initializes a new Application instance."""
 
-        # Initializes the logging for the application and creates a logger for the application
         self.logger = logging.getLogger('fl')
         self.logger.setLevel(logging.DEBUG)
         logging_formatter = logging.Formatter('%(asctime)s - %(levelname)s: %(message)s')
@@ -28,115 +24,24 @@ class Application:
         console_logging_handler.setFormatter(logging_formatter)
         self.logger.addHandler(console_logging_handler)
 
-        # Initializes the central server property
-        self.central_server = None
-
-        # Initializes a flag, which is set when the training should be aborted
-        self.is_aborting = False
+        self.commands = None
 
     def run(self) -> None:
         """Runs the application."""
 
-        # Parses and validates the command line arguments
+        # Parses the command line arguments
         command_line_arguments = self.parse_command_line_arguments()
-        if command_line_arguments.dataset_path is None:
-            self.logger.error('No dataset path was specified. Exiting.')
+
+        # Finds the command that is to be run
+        if command_line_arguments.command is None:
+            self.logger.error('No command was specified.')
             sys.exit(1)
-        if command_line_arguments.model_output_file_path is None:
-            self.logger.warn('No output path was specified, so the trained global model will not be saved.')
-        if command_line_arguments.number_of_clients > 250 and command_line_arguments.training_statistics_plot_output_file_path is not None:
-            self.logger.warn('Plotting the training statistics plot for more than 250 clients will take a long time and is discouraged.')
-        if command_line_arguments.number_of_clients > 1000 and command_line_arguments.training_statistics_plot_output_file_path is not None:
-            self.logger.error('Plotting the training statistics plot for more than 1000 will take too long. Existing.')
-            sys.exit(1)
-
-        # Selects the device the training and validation will be performed on
-        device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        if command_line_arguments.cpu:
-            device = 'cpu'
-
-        # Loading the datasets
-        self.logger.info('Loading dataset (%s)...', command_line_arguments.dataset)
-        training_subset, validation_subset, sample_shape, number_of_classes = create_dataset(
-            command_line_arguments.dataset,
-            command_line_arguments.dataset_path
-        )
-        client_subsets = split_dataset(training_subset, command_line_arguments.number_of_clients)
-
-        # Creates the clients
-        clients = []
-        self.logger.info('Creating %d clients...', command_line_arguments.number_of_clients)
-        for index in range(command_line_arguments.number_of_clients):
-            clients.append(FederatedLearningClient(
-                index + 1,
-                device,
-                command_line_arguments.model,
-                client_subsets[index],
-                sample_shape,
-                number_of_classes,
-                command_line_arguments.learning_rate,
-                command_line_arguments.momentum,
-                command_line_arguments.weight_decay,
-                command_line_arguments.batch_size
-            ))
-
-        # Creates the central server
-        self.logger.info('Creating central server...')
-        self.central_server = FederatedLearningCentralServer(
-            clients,
-            command_line_arguments.number_of_clients_per_communication_round,
-            device,
-            command_line_arguments.model,
-            validation_subset,
-            sample_shape,
-            number_of_classes,
-            command_line_arguments.batch_size
-        )
-
-        # Registers a signal handler, which graciously stops the training and saves the current state to disk, when the user hits Ctrl+C
-        signal.signal(signal.SIGINT, lambda _, __: self.abort_training())
-
-        # Performs the federated training for the specified number of communication rounds
-        for communication_round in range(1, command_line_arguments.number_of_communication_rounds + 1):
-            if self.is_aborting:
-                self.logger.info('Graciously shutting down federated learning... Hit Ctrl+C again to force quit...')
-                break
-            self.logger.info('Starting communication round %d...', communication_round)
-            self.central_server.train_clients_and_update_global_model(command_line_arguments.number_of_local_epochs)
-            validation_loss, validation_accuracy = self.central_server.validate()
-            self.logger.info(
-                'Finished communication round %d, validation loss: %f, validation accuracy: %f',
-                communication_round,
-                validation_loss,
-                validation_accuracy
-            )
-
-        # Saves the trained global to disk
-        if command_line_arguments.model_output_file_path is not None:
-            self.logger.info(
-                'Finished federated training, saving trained global model to disk (%s)...',
-                command_line_arguments.model_output_file_path
-            )
-            self.central_server.save_checkpoint(command_line_arguments.model_output_file_path)
-
-        # Saves the training statistics plot
-        if command_line_arguments.training_statistics_plot_output_file_path is not None:
-            self.logger.info(
-                'Plotting training statistics and saving the plot to disk (%s)...',
-                command_line_arguments.training_statistics_plot_output_file_path
-            )
-            self.central_server.save_training_statistics_plot(command_line_arguments.training_statistics_plot_output_file_path)
-
-    def abort_training(self) -> None:
-        """Graciously aborts the federated learning."""
-
-        # If the user hits Ctrl+C a second time, then the application is closed right away
-        if self.is_aborting:
-            exit()
-
-        # Since this is the first time, that the user hit Ctrl+C, the aborting process is initiated
-        self.is_aborting = True
-        self.central_server.abort_training()
+        try:
+            command_class = get_command(command_line_arguments.command)
+            command = command_class()
+            command.run(command_line_arguments)
+        except Exception:  # pylint: disable=broad-except
+            self.logger.error('An error occurred in the command "%s": %s', command_line_arguments.command, traceback.format_exc())
 
     def parse_command_line_arguments(self) -> argparse.Namespace:
         """Parses the command line arguments of the application.
@@ -169,127 +74,18 @@ class Application:
             help='Displays the version string of the application and exits.'
         )
 
-        # Adds the command line arguments for the federated learning
-        argument_parser.add_argument(
-            '-n',
-            '--number-of-clients',
-            dest='number_of_clients',
-            type=int,
-            default=10,
-            help='The number of federated learning clients. Defaults to 10.'
-        )
-        argument_parser.add_argument(
-            '-N',
-            '--number-of-clients-per-communication-round',
-            dest='number_of_clients_per_communication_round',
-            type=int,
-            default=None,
-            help='''One of the primary bottlenecks in the communication between the central server and its clients is the number of clients that the
-                central server has to communicate with in each communication round. One easy method of reducing this overhead, is to subsample the
-                client population. In each communication round, the central server only selects a subset of clients, which will train and communicate
-                their updates back. This parameter specifies the number of clients that will be selected at random in each communication round.
-                Defaults to the number of clients.
-            '''
-        )
-        argument_parser.add_argument(
-            '-m',
-            '--model',
-            dest='model',
-            type=str,
-            choices=['lenet-5'],
-            default='lenet-5',
-            help='The model that is to be used for the training. Defaults to "lenet-5".'
-        )
-        argument_parser.add_argument(
-            '-d',
-            '--dataset',
-            dest='dataset',
-            type=str,
-            choices=['cifar-10', 'mnist'],
-            default='mnist',
-            help='The dataset that is to be used for the training. Defaults to "mnist".'
-        )
-        argument_parser.add_argument(
-            '-D',
-            '--dataset-path',
-            dest='dataset_path',
-            type=str,
-            help='''The path to the directory that contains the dataset that is to be used for the training. If the dataset does not exist, it is
-                downloaded automatically.
-            '''
-        )
-        argument_parser.add_argument(
-            '-r',
-            '--number-of-communication-rounds',
-            dest='number_of_communication_rounds',
-            type=int,
-            default=50,
-            help='''The number of communication rounds of the federated learning. One communication round consists of sending the global model to the
-                clients, instructing them to perform training on their local dataset, and aggregating their updated local models into a new global
-                model. Defaults to 50.
-            '''
-        )
-        argument_parser.add_argument(
-            '-e',
-            '--number-of-local-epochs',
-            dest='number_of_local_epochs',
-            type=int,
-            default=5,
-            help='The number of communication epochs for which the clients are training the model on their local data. Defaults to 5.'
-        )
-        argument_parser.add_argument(
-            '-o',
-            '--model-output-file-path',
-            dest='model_output_file_path',
-            type=str,
-            help='The path to the file into which the trained global model is to be stored. If no path is specified, the model is not saved.'
-        )
-        argument_parser.add_argument(
-            '-p',
-            '--training-statistics-plot-output-file-path',
-            dest='training_statistics_plot_output_file_path',
-            type=str,
-            help='The path to the file into which the training statistics plot is to be stored. If no path is specified, the plot is not saved.'
-        )
-        argument_parser.add_argument(
-            '-l',
-            '--learning-rate',
-            dest='learning_rate',
-            type=float,
-            default=0.01,
-            help='The learning rate of the optimizer. Defaults to 0.01.'
-        )
-        argument_parser.add_argument(
-            '-M',
-            '--momentum',
-            dest='momentum',
-            type=float,
-            default=0.9,
-            help='The momentum of the optimizer. Defaults to 0.9.'
-        )
-        argument_parser.add_argument(
-            '-w',
-            '--weight-decay',
-            dest='weight_decay',
-            type=float,
-            default=0.0005,
-            help='The rate at which the weights are decayed during optimization. Defaults to 0.96.'
-        )
-        argument_parser.add_argument(
-            '-b',
-            '--batch-size',
-            dest='batch_size',
-            type=int,
-            default=16,
-            help='The size of mini-batches that are to be used during training and validation. Defaults to 128.'
-        )
-        argument_parser.add_argument(
-            '-c',
-            '--cpu',
-            dest='cpu',
-            action='store_true',
-            help='Always use the CPU for training, even when a GPU is available.'
-        )
+        # Adds the commands
+        command_descriptors = get_command_descriptors()
+        sub_parsers = argument_parser.add_subparsers(dest='command')
+        for command_descriptor in command_descriptors:
+            command_parser = sub_parsers.add_parser(command_descriptor.get_name(), help=command_descriptor.get_description(), add_help=False)
+            command_parser.add_argument(
+                '-h',
+                '--help',
+                action='help',
+                help='Shows this help message and exits.'
+            )
+            command_descriptor.add_arguments(command_parser)
 
         # Parses the command line arguments and returns them
         return argument_parser.parse_args()
