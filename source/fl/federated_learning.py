@@ -263,7 +263,7 @@ class FederatedLearningClient:
         training_accuracy = None
         for _ in range(number_of_epochs):
             if self.is_aborting:
-                self.logger.info('Aborting local training of client %d...', self.client_id)
+                self.logger.info('Aborting local training of client %d... Hit Ctrl+C again to force quit...', self.client_id)
                 break
             training_loss, training_accuracy = trainer.train_for_one_epoch()
 
@@ -365,7 +365,7 @@ class FederatedLearningCentralServer:
         global_model_parameters = self.global_model.state_dict()
         for index, client in enumerate(client_subsample):
             if self.is_aborting:
-                self.logger.info('Aborting federated learning...')
+                self.logger.info('Aborting communication round... Hit Ctrl+C again to force quit...')
                 break
             self.logger.info('Training client %d (%d/%d)...', client.client_id, index + 1, self.number_of_clients_per_communication_round)
             training_loss, training_accuracy, local_model_parameters = client.train(global_model_parameters, number_of_local_epochs)

@@ -100,6 +100,7 @@ class Application:
         # Performs the federated training for the specified number of communication rounds
         for communication_round in range(1, command_line_arguments.number_of_communication_rounds + 1):
             if self.is_aborting:
+                self.logger.info('Graciously shutting down federated learning... Hit Ctrl+C again to force quit...')
                 break
             self.logger.info('Starting communication round %d...', communication_round)
             self.central_server.train_clients_and_update_global_model(command_line_arguments.number_of_local_epochs)
@@ -130,6 +131,11 @@ class Application:
     def abort_training(self) -> None:
         """Graciously aborts the federated learning."""
 
+        # If the user hits Ctrl+C a second time, then the application is closed right away
+        if self.is_aborting:
+            exit()
+
+        # Since this is the first time, that the user hit Ctrl+C, the aborting process is initiated
         self.is_aborting = True
         self.central_server.abort_training()
 
