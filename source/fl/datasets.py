@@ -5,7 +5,7 @@ import torchvision
 
 
 AVAILABLE_DATASETS = ['mnist', 'cifar-10']
-DEFAULT_DATASET = 'cifar-10'
+DEFAULT_DATASET = 'mnist'
 
 
 def load_cifar_10(path: str) -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset]:

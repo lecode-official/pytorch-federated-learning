@@ -63,7 +63,7 @@ class FederatedAveragingCommand(BaseCommandDescriptor):
             type=str,
             choices=fl.models.AVAILABLE_MODELS,
             default=fl.models.DEFAULT_MODEL,
-            help='The model that is to be used for the training. Defaults to "lenet-5".'
+            help=f'The model that is to be used for the training. Defaults to "{fl.models.DEFAULT_MODEL}".'
         )
         argument_parser.add_argument(
             '-d',
@@ -72,7 +72,7 @@ class FederatedAveragingCommand(BaseCommandDescriptor):
             type=str,
             choices=fl.datasets.AVAILABLE_DATASETS,
             default=fl.datasets.DEFAULT_DATASET,
-            help='The dataset that is to be used for the training. Defaults to "mnist".'
+            help=f'The dataset that is to be used for the training. Defaults to "{fl.datasets.DEFAULT_DATASET}".'
         )
         argument_parser.add_argument(
             '-D',
