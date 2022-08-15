@@ -208,6 +208,7 @@ class FederatedLearningClient:
             batch_size (int, optional): The size of mini-batches that are to be used during training. Defaults to 128.
         """
 
+        # Stores the arguments for later use
         self.client_id = client_id
         self.device = device
         self.local_model_type = local_model_type
@@ -218,6 +219,12 @@ class FederatedLearningClient:
         self.momentum = momentum
         self.weight_decay = weight_decay
         self.batch_size = batch_size
+
+        # Initializes the logger
+        self.logger = logging.getLogger(__name__ + '.' + self.__class__.__name__)
+
+        # Initializes a flag, which is set when the training should be aborted
+        self.is_aborting = False
 
     def train(self, global_model_parameters: collections.OrderedDict, number_of_epochs: int) -> tuple[float, float, collections.OrderedDict]:
         """Trains the local model on the local data of the client.
@@ -255,10 +262,18 @@ class FederatedLearningClient:
         training_loss = None
         training_accuracy = None
         for _ in range(number_of_epochs):
+            if self.is_aborting:
+                self.logger.info('Aborting local training of client %d...', self.client_id)
+                break
             training_loss, training_accuracy = trainer.train_for_one_epoch()
 
         # Returns the training loss, training accuracy, and the updated parameters of the local model
         return training_loss, training_accuracy, trainer.model.state_dict()
+
+    def abort_training(self) -> None:
+        """Graciously aborts the federated learning."""
+
+        self.is_aborting = True
 
 
 class FederatedLearningCentralServer:
@@ -327,6 +342,9 @@ class FederatedLearningCentralServer:
         self.central_server_validation_losses = []
         self.central_server_validation_accuracies = []
 
+        # Initializes a flag, which is set when the training should be aborted
+        self.is_aborting = False
+
     def train_clients_and_update_global_model(self, number_of_local_epochs: int) -> None:
         """Updates the local models of the clients using the parameters of the global model and instructs the clients to train their updated local
         model on their local private training data for the specified number of epochs. Then the global model of the central server is updated by
@@ -342,6 +360,9 @@ class FederatedLearningCentralServer:
         # Cycles through all clients, sends them the global model, and instructs them to train their updated local models on their local data
         global_model_parameters = self.global_model.state_dict()
         for index, client in enumerate(client_subsample):
+            if self.is_aborting:
+                self.logger.info('Aborting federated learning...')
+                break
             self.logger.info('Training client %d (%d/%d)...', client.client_id, index + 1, self.number_of_clients_per_communication_round)
             training_loss, training_accuracy, local_model_parameters = client.train(global_model_parameters, number_of_local_epochs)
             self.client_training_losses[client.client_id - 1].append(training_loss)
@@ -373,7 +394,14 @@ class FederatedLearningCentralServer:
 
         return validation_loss, validation_accuracy
 
-    def save_statistics_plot(self, output_file_path: str) -> None:
+    def abort_training(self) -> None:
+        """Graciously aborts the federated learning."""
+
+        for client in self.clients:
+            client.abort_training()
+        self.is_aborting = True
+
+    def save_training_statistics_plot(self, output_file_path: str) -> None:
         """Plots the training statistics and save the resulting plot to a file.
 
         Args:
@@ -398,14 +426,13 @@ class FederatedLearningCentralServer:
         final_central_server_validation_accuracy = self.central_server_validation_accuracies[-1]
 
         # Creates the plot for the validation loss and validation accuracy of the central server
-        communication_rounds = list(range(1, len(self.central_server_validation_accuracies) + 1))
         central_server_validation_accuracy_axis = figure.add_subplot(grid_specification[:, 0])
         central_server_validation_accuracy_axis.set_ylim(0.0, 1.0)
         central_server_validation_accuracy_axis.set_xlabel('Communication Rounds')
         central_server_validation_accuracy_axis.set_ylabel('Validation Accuracy')
         central_server_validation_accuracy_axis.set_title('Central Server')
         central_server_validation_accuracy_axis.plot(
-            communication_rounds,
+            list(range(1, len(self.central_server_validation_accuracies) + 1)),
             self.central_server_validation_accuracies,
             color='blue',
             linewidth=0.5,
@@ -415,7 +442,7 @@ class FederatedLearningCentralServer:
         central_server_validation_loss_axis = central_server_validation_accuracy_axis.twinx()
         central_server_validation_loss_axis.set_ylabel('Validation Loss')
         central_server_validation_loss_axis.plot(
-            communication_rounds,
+            list(range(1, len(self.central_server_validation_losses) + 1)),
             self.central_server_validation_losses,
             color='red',
             linewidth=0.5,
@@ -449,7 +476,7 @@ class FederatedLearningCentralServer:
                         transform=federated_learning_client_training_accuracy_axis.transAxes
                     )
                     federated_learning_client_training_accuracy_axis.plot(
-                        communication_rounds,
+                        list(range(1, len(self.client_training_accuracies[federated_learning_client_index]) + 1)),
                         self.client_training_accuracies[federated_learning_client_index],
                         color='blue',
                         linewidth=0.5
@@ -458,7 +485,7 @@ class FederatedLearningCentralServer:
                     federated_learning_client_training_loss_axis.set_ylim((0.0, loss_axis_upper_y_limit))
                     federated_learning_client_training_loss_axis.tick_params(right=False, labelright=False)
                     federated_learning_client_training_loss_axis.plot(
-                        communication_rounds,
+                        list(range(1, len(self.client_training_losses[federated_learning_client_index]) + 1)),
                         self.client_training_losses[federated_learning_client_index],
                         color='red',
                         linewidth=0.5

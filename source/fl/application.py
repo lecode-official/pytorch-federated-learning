@@ -3,6 +3,7 @@
 __version__ = '0.1.0'
 
 import sys
+import signal
 import logging
 import argparse
 
@@ -19,6 +20,7 @@ class Application:
     def __init__(self) -> None:
         """Initializes a new Application instance."""
 
+        # Initializes the logging for the application and creates a logger for the application
         self.logger = logging.getLogger('fl')
         self.logger.setLevel(logging.DEBUG)
         logging_formatter = logging.Formatter('%(asctime)s - %(levelname)s: %(message)s')
@@ -26,6 +28,12 @@ class Application:
         console_logging_handler.setLevel(logging.DEBUG)
         console_logging_handler.setFormatter(logging_formatter)
         self.logger.addHandler(console_logging_handler)
+
+        # Initializes the central server property
+        self.central_server = None
+
+        # Initializes a flag, which is set when the training should be aborted
+        self.is_aborting = False
 
     def run(self) -> None:
         """Runs the application."""
@@ -37,9 +45,9 @@ class Application:
             sys.exit(1)
         if command_line_arguments.model_output_file_path is None:
             self.logger.warn('No output path was specified, so the trained global model will not be saved.')
-        if command_line_arguments.number_of_clients > 250 and command_line_arguments.statistics_plot_output_file_path is not None:
+        if command_line_arguments.number_of_clients > 250 and command_line_arguments.training_statistics_plot_output_file_path is not None:
             self.logger.warn('Plotting the training statistics plot for more than 250 clients will take a long time and is discouraged.')
-        if command_line_arguments.number_of_clients > 1000 and command_line_arguments.statistics_plot_output_file_path is not None:
+        if command_line_arguments.number_of_clients > 1000 and command_line_arguments.training_statistics_plot_output_file_path is not None:
             self.logger.error('Plotting the training statistics plot for more than 1000 will take too long. Existing.')
             sys.exit(1)
 
@@ -75,7 +83,7 @@ class Application:
 
         # Creates the central server
         self.logger.info('Creating central server...')
-        central_server = FederatedLearningCentralServer(
+        self.central_server = FederatedLearningCentralServer(
             clients,
             command_line_arguments.number_of_clients_per_communication_round,
             device,
@@ -86,11 +94,16 @@ class Application:
             command_line_arguments.batch_size
         )
 
+        # Registers a signal handler, which graciously stops the training and saves the current state to disk, when the user hits Ctrl+C
+        signal.signal(signal.SIGINT, lambda _, __: self.abort_training())
+
         # Performs the federated training for the specified number of communication rounds
         for communication_round in range(1, command_line_arguments.number_of_communication_rounds + 1):
+            if self.is_aborting:
+                break
             self.logger.info('Starting communication round %d...', communication_round)
-            central_server.train_clients_and_update_global_model(command_line_arguments.number_of_local_epochs)
-            validation_loss, validation_accuracy = central_server.validate()
+            self.central_server.train_clients_and_update_global_model(command_line_arguments.number_of_local_epochs)
+            validation_loss, validation_accuracy = self.central_server.validate()
             self.logger.info(
                 'Finished communication round %d, validation loss: %f, validation accuracy: %f',
                 communication_round,
@@ -104,15 +117,21 @@ class Application:
                 'Finished federated training, saving trained global model to disk (%s)...',
                 command_line_arguments.model_output_file_path
             )
-            central_server.save_checkpoint(command_line_arguments.model_output_file_path)
+            self.central_server.save_checkpoint(command_line_arguments.model_output_file_path)
 
         # Saves the training statistics plot
-        if command_line_arguments.statistics_plot_output_file_path is not None:
+        if command_line_arguments.training_statistics_plot_output_file_path is not None:
             self.logger.info(
                 'Plotting training statistics and saving the plot to disk (%s)...',
-                command_line_arguments.statistics_plot_output_file_path
+                command_line_arguments.training_statistics_plot_output_file_path
             )
-            central_server.save_statistics_plot(command_line_arguments.statistics_plot_output_file_path)
+            self.central_server.save_training_statistics_plot(command_line_arguments.training_statistics_plot_output_file_path)
+
+    def abort_training(self) -> None:
+        """Graciously aborts the federated learning."""
+
+        self.is_aborting = True
+        self.central_server.abort_training()
 
     def parse_command_line_arguments(self) -> argparse.Namespace:
         """Parses the command line arguments of the application.
@@ -124,7 +143,7 @@ class Application:
         # Creates a command line argument parser for the application
         argument_parser = argparse.ArgumentParser(
             prog='fl',
-            description='An implementation of vanilla federated learning using federated averaging (FedAvg).',
+            description='An implementation of federated learning using federated averaging (FedAvg).',
             add_help=False
         )
 
@@ -210,7 +229,7 @@ class Application:
             '--number-of-local-epochs',
             dest='number_of_local_epochs',
             type=int,
-            default=2,
+            default=5,
             help='The number of communication epochs for which the clients are training the model on their local data. Defaults to 5.'
         )
         argument_parser.add_argument(
@@ -222,8 +241,8 @@ class Application:
         )
         argument_parser.add_argument(
             '-p',
-            '--statistics-plot-output-file-path',
-            dest='statistics_plot_output_file_path',
+            '--training-statistics-plot-output-file-path',
+            dest='training_statistics_plot_output_file_path',
             type=str,
             help='The path to the file into which the training statistics plot is to be stored. If no path is specified, the plot is not saved.'
         )
@@ -256,7 +275,7 @@ class Application:
             '--batch-size',
             dest='batch_size',
             type=int,
-            default=128,
+            default=16,
             help='The size of mini-batches that are to be used during training and validation. Defaults to 128.'
         )
         argument_parser.add_argument(
