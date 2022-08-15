@@ -45,7 +45,7 @@ To train models using federated learning and federated averaging, you can use th
 
 ```bash
 python -m fl federated-averaging \
-    --model lenet-5
+    --model lenet-5 \
     --dataset mnist \
     --dataset-path ./datasets/mnist \
     --number-of-clients 10 \
@@ -62,7 +62,7 @@ Currently the following models and datasets are supported:
 **Datasets:**
 
 - MNIST (`--dataset mnist`)
-- CIFAR-10 (`--model cifar-10`)
+- CIFAR-10 (`--dataset cifar-10`)
 
 The training hyperparameters can be specified using the arguments `--learning-rate`/`-l`, `--momentum`/`-M`, `--weight-decay`/`-w`, and `--batch-size`/`-b`. Using the argument `--number-of-local-epochs`/`-e`, the number of epochs for which each client trains before sending the model updates back to the central server, can be specified. If you want the training to only run on the CPU (e.g., to better the debug the application), you can use the `--force-cpu`/`-c` flag. To use client sub-sampling, i.e., only using a subset of the total client population for each communication round, you can use the `--number-of-clients-per-communication-round`/`-N` argument. If not specified, the argument defaults to the number of clients, i.e., all clients are used for training in every communication round. Finally, it is possible to plot the training statistics (loss and accuracy) for the central server and all clients by passing a file path to the `--training-statistics-plot-output-file-path`/`p` argument. Be aware, though, that the plotting can take a long time for many clients, therefore, when using more than 250 clients, a warning is logged, and when using more than 1,000 clients, an error is raised and the application exists.
 
