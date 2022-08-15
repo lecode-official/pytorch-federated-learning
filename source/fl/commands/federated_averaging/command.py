@@ -6,6 +6,7 @@ import logging
 from datetime import datetime
 from argparse import Namespace
 
+import yaml
 import torch
 
 from fl.commands.base import BaseCommand
@@ -34,9 +35,29 @@ class FederatedAveragingCommand(BaseCommand):
         # Makes sure that the output directory exists
         os.makedirs(command_line_arguments.output_path, exist_ok=True)
 
+        # Saves the hyperparameters for later reference
+        with open(os.path.join(command_line_arguments.output_path, 'hyperparameters.yaml'), 'w') as hyperparameters_file:
+            yaml.dump({
+                'number_of_clients': command_line_arguments.number_of_clients,
+                'number_of_clients_per_communication_round': (
+                    command_line_arguments.number_of_clients_per_communication_round or command_line_arguments.number_of_clients
+                ),
+                'model': command_line_arguments.model,
+                'dataset': command_line_arguments.dataset,
+                'dataset_path': command_line_arguments.dataset_path,
+                'number_of_communication_rounds': command_line_arguments.number_of_communication_rounds,
+                'number_of_local_epochs': command_line_arguments.number_of_local_epochs,
+                'output_path': command_line_arguments.output_path,
+                'learning_rate': command_line_arguments.learning_rate,
+                'momentum': command_line_arguments.momentum,
+                'weight_decay': command_line_arguments.weight_decay,
+                'batch_size': command_line_arguments.batch_size,
+                'force_cpu': command_line_arguments.force_cpu
+            }, hyperparameters_file)
+
         # Selects the device the training and validation will be performed on
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        if command_line_arguments.cpu:
+        if command_line_arguments.force_cpu:
             device = 'cpu'
 
         # Loading the datasets

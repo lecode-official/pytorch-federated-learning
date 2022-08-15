@@ -147,8 +147,8 @@ class FederatedAveragingCommand(BaseCommandDescriptor):
         )
         argument_parser.add_argument(
             '-c',
-            '--cpu',
-            dest='cpu',
+            '--force-cpu',
+            dest='force_cpu',
             action='store_true',
             help='Always use the CPU for training, even when a GPU is available.'
         )
