@@ -4,7 +4,7 @@ import random
 import logging
 import collections
 from enum import Enum
-from typing import Union
+from typing import Optional, Union
 
 import torch
 import matplotlib
@@ -282,7 +282,7 @@ class FederatedLearningCentralServer:
     def __init__(
             self,
             clients: list[FederatedLearningClient],
-            number_of_clients_per_communication_round: int,
+            number_of_clients_per_communication_round: Optional[int],
             device: Union[str, torch.device],
             global_model_type: str,
             central_validation_subset: torch.utils.data.Dataset,
@@ -297,7 +297,7 @@ class FederatedLearningCentralServer:
                 clients is the number of clients that the central server has to communicate with in each communication round. One easy method of
                 reducing this overhead, is to subsample the client population. In each communication round, the central server only selects a subset
                 of clients, which will train and communicate their updates back. This parameter specifies the number of clients that will be selected
-                at random in each communication round.
+                at random in each communication round. If not specified, this defaults to the number of clients.
             device (Union[str, torch.device]): The device on which the global model of the central server is to be validated.
             global_model_type (str): The type of model that is to be used as global model for the central server.
             central_validation_subset (torch.utils.data.Dataset): The validation subset on which the global model is to be validated.
@@ -309,6 +309,10 @@ class FederatedLearningCentralServer:
             ValueError: When the number of clients per communication round is less than 1 or more than the total number of clients, a ValueError is
                 raised.
         """
+
+        # If no number of clients per communication round was specified, then it defaults to the number of clients
+        if number_of_clients_per_communication_round is None:
+            number_of_clients_per_communication_round = len(clients)
 
         # Validates the arguments
         if number_of_clients_per_communication_round < 1:

@@ -178,12 +178,12 @@ class Application:
             '--number-of-clients-per-communication-round',
             dest='number_of_clients_per_communication_round',
             type=int,
-            default=10,
+            default=None,
             help='''One of the primary bottlenecks in the communication between the central server and its clients is the number of clients that the
                 central server has to communicate with in each communication round. One easy method of reducing this overhead, is to subsample the
                 client population. In each communication round, the central server only selects a subset of clients, which will train and communicate
                 their updates back. This parameter specifies the number of clients that will be selected at random in each communication round.
-                Defaults to 10.
+                Defaults to the number of clients.
             '''
         )
         argument_parser.add_argument(
