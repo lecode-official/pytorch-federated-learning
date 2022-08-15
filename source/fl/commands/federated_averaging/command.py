@@ -39,15 +39,15 @@ class FederatedAveragingCommand(BaseCommand):
         with open(os.path.join(command_line_arguments.output_path, 'hyperparameters.yaml'), 'w') as hyperparameters_file:
             yaml.dump({
                 'number_of_clients': command_line_arguments.number_of_clients,
-                'number_of_clients_per_communication_round': (
-                    command_line_arguments.number_of_clients_per_communication_round or command_line_arguments.number_of_clients
-                ),
+                'number_of_clients_per_communication_round': \
+                    command_line_arguments.number_of_clients_per_communication_round or command_line_arguments.number_of_clients,
                 'model': command_line_arguments.model,
                 'dataset': command_line_arguments.dataset,
                 'dataset_path': command_line_arguments.dataset_path,
                 'number_of_communication_rounds': command_line_arguments.number_of_communication_rounds,
                 'number_of_local_epochs': command_line_arguments.number_of_local_epochs,
                 'output_path': command_line_arguments.output_path,
+                'number_of_checkpoint_files_to_retain': command_line_arguments.number_of_checkpoint_files_to_retain,
                 'learning_rate': command_line_arguments.learning_rate,
                 'momentum': command_line_arguments.momentum,
                 'weight_decay': command_line_arguments.weight_decay,
@@ -102,19 +102,53 @@ class FederatedAveragingCommand(BaseCommand):
         signal.signal(signal.SIGINT, lambda _, __: self.abort_training())
 
         # Performs the federated training for the specified number of communication rounds
+        current_greatest_validation_accuracy = 0
+        retained_global_model_checkpoint_file_paths = []
         for communication_round in range(1, command_line_arguments.number_of_communication_rounds + 1):
+
+            # If the user hit Ctrl+C, then the training is aborted
             if self.is_aborting:
                 self.logger.info('Graciously shutting down federated learning... Hit Ctrl+C again to force quit...')
                 break
+
+            # Performs a communication round, where the clients (or in the case of client sub-sampling: a subset of the clients) is send the global
+            # model and instructed to train the model on their local data, after that, the clients send back their updated models and the central
+            # server aggregates them to form a new global model
             self.logger.info('Starting communication round %d...', communication_round)
             self.central_server.train_clients_and_update_global_model(command_line_arguments.number_of_local_epochs)
+
+            # Validates the updated global model and reports its loss and accuracy
             validation_loss, validation_accuracy = self.central_server.validate()
             self.logger.info(
                 'Finished communication round %d, validation loss: %f, validation accuracy: %f',
                 communication_round,
                 validation_loss,
-                validation_accuracy
+                validation_accuracy * 100
             )
+
+            # If the updated global model has a better accuracy than any of its predecessors, then a checkpoint is saved for it, if the number of
+            # checkpoint files that have already been saved, exceeds the number of checkpoint files to retain, then the oldest one is deleted (this is
+            # not done, if this is the last communication round, because the final model is saved anyway)
+            if communication_round != command_line_arguments.number_of_communication_rounds:
+                if validation_accuracy > current_greatest_validation_accuracy:
+
+                    # Since the updated global model outperformed all previous global models, a checkpoint is saved for it
+                    global_model_checkpoint_file_path = self.save_global_model_checkpoint(
+                        command_line_arguments.model,
+                        command_line_arguments.dataset,
+                        communication_round,
+                        validation_accuracy * 100,
+                        command_line_arguments.output_path
+                    )
+                    current_greatest_validation_accuracy = validation_accuracy
+
+                    # If the number of saved checkpoint files exceeds the number of checkpoint files that should be retained, the oldest checkpoint
+                    # file is deleted
+                    retained_global_model_checkpoint_file_paths.append(global_model_checkpoint_file_path)
+                    if len(retained_global_model_checkpoint_file_paths) > command_line_arguments.number_of_checkpoint_files_to_retain:
+                        global_model_checkpoint_file_to_remove = retained_global_model_checkpoint_file_paths[0]
+                        os.remove(global_model_checkpoint_file_to_remove)
+                        retained_global_model_checkpoint_file_paths = retained_global_model_checkpoint_file_paths[1:]
 
         # Saves the trained global model and the training statistics plot to disk
         self.logger.info('Finished federated training...')
@@ -122,26 +156,33 @@ class FederatedAveragingCommand(BaseCommand):
             command_line_arguments.model,
             command_line_arguments.dataset,
             communication_round,
+            validation_accuracy * 100,
             command_line_arguments.output_path
         )
         self.save_training_statistics_plot(command_line_arguments.output_path)
 
-    def save_global_model_checkpoint(self, model_type: str, dataset_type: str, communication_round: str, output_path: str) -> None:
+    def save_global_model_checkpoint(self, model_type: str, dataset_type: str, communication_round: str, accuracy: float, output_path: str) -> str:
         """Saves the current state of the global model of the central server to disk.
 
         Args:
             model_type (str): The type of model that is being trained.
             dataset_type (str): The type of dataset that the model being trained on.
             communication_round (str): The current communication round.
+            accuracy (float): The accuracy of the model.
             output_path (str): The path to the directory into which the model checkpoint file is to be saved.
+
+        Returns:
+            str: Returns the path to the checkpoint file.
         """
 
-        model_checkpoint_file_path = os.path.join(
+        global_model_checkpoint_file_path = os.path.join(
             output_path,
-            f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}-{model_type}-{dataset_type}-fedavg-{communication_round}-communication_round.pt'
+            f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}-{model_type}-{dataset_type}-fedavg-{communication_round}-communication-round-'
+            f'{accuracy:.2f}-accuracy.pt'
         )
-        self.logger.info('Saving trained global model to disk (%s)...', model_checkpoint_file_path)
-        self.central_server.save_checkpoint(model_checkpoint_file_path)
+        self.logger.info('Saving global model checkpoint to disk (%s)...', global_model_checkpoint_file_path)
+        self.central_server.save_checkpoint(global_model_checkpoint_file_path)
+        return global_model_checkpoint_file_path
 
     def save_training_statistics_plot(self, output_path: str) -> None:
         """Plots the training statistics and saves the resulting plot to disk.

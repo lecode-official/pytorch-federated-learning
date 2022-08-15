@@ -114,6 +114,18 @@ class FederatedAveragingCommand(BaseCommandDescriptor):
             '''
         )
         argument_parser.add_argument(
+            '-R',
+            '--number-of-checkpoint-files-to-retain',
+            dest='number_of_checkpoint_files_to_retain',
+            type=int,
+            default=5,
+            help='''After each communication round, the current state of the global model is saved to a checkpoint file if its validation accuracy is
+                greater than any previous state of the global model. This can potentially result in a great number of checkpoint files that are being
+                stored. This argument controls how many past checkpoint files are being retained. If the number of past checkpoint files exceeds this
+                argument, then the oldest one is deleted. Defaults to 5.
+            '''
+        )
+        argument_parser.add_argument(
             '-l',
             '--learning-rate',
             dest='learning_rate',
