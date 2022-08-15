@@ -2,6 +2,8 @@
 
 from argparse import ArgumentParser
 
+import fl.models
+import fl.datasets
 from fl.commands.base import BaseCommandDescriptor
 
 
@@ -59,8 +61,8 @@ class FederatedAveragingCommand(BaseCommandDescriptor):
             '--model',
             dest='model',
             type=str,
-            choices=['lenet-5'],
-            default='lenet-5',
+            choices=fl.models.AVAILABLE_MODELS,
+            default=fl.models.DEFAULT_MODEL,
             help='The model that is to be used for the training. Defaults to "lenet-5".'
         )
         argument_parser.add_argument(
@@ -68,8 +70,8 @@ class FederatedAveragingCommand(BaseCommandDescriptor):
             '--dataset',
             dest='dataset',
             type=str,
-            choices=['cifar-10', 'mnist'],
-            default='mnist',
+            choices=fl.datasets.AVAILABLE_DATASETS,
+            default=fl.datasets.DEFAULT_DATASET,
             help='The dataset that is to be used for the training. Defaults to "mnist".'
         )
         argument_parser.add_argument(
@@ -77,6 +79,7 @@ class FederatedAveragingCommand(BaseCommandDescriptor):
             '--dataset-path',
             dest='dataset_path',
             type=str,
+            required=True,
             help='''The path to the directory that contains the dataset that is to be used for the training. If the dataset does not exist, it is
                 downloaded automatically.
             '''
@@ -102,17 +105,13 @@ class FederatedAveragingCommand(BaseCommandDescriptor):
         )
         argument_parser.add_argument(
             '-o',
-            '--model-output-file-path',
-            dest='model_output_file_path',
+            '--output-path',
+            dest='output_path',
             type=str,
-            help='The path to the file into which the trained global model is to be stored. If no path is specified, the model is not saved.'
-        )
-        argument_parser.add_argument(
-            '-p',
-            '--training-statistics-plot-output-file-path',
-            dest='training_statistics_plot_output_file_path',
-            type=str,
-            help='The path to the file into which the training statistics plot is to be stored. If no path is specified, the plot is not saved.'
+            required=True,
+            help='''The path to the directory into which checkpoints of the trained global model as well as training statistics are to be stored.
+                If the directory does not exist, it is created.
+            '''
         )
         argument_parser.add_argument(
             '-l',

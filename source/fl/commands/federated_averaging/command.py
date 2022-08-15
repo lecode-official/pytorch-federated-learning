@@ -1,8 +1,9 @@
 """Contains the federated-averaging command."""
 
-import sys
+import os
 import signal
 import logging
+from datetime import datetime
 from argparse import Namespace
 
 import torch
@@ -30,17 +31,8 @@ class FederatedAveragingCommand(BaseCommand):
             command_line_arguments (Namespace): The parsed command line arguments.
         """
 
-        # Validates the command line arguments
-        if command_line_arguments.dataset_path is None:
-            self.logger.error('No dataset path was specified. Exiting.')
-            sys.exit(1)
-        if command_line_arguments.model_output_file_path is None:
-            self.logger.warn('No output path was specified, so the trained global model will not be saved.')
-        if command_line_arguments.number_of_clients > 250 and command_line_arguments.training_statistics_plot_output_file_path is not None:
-            self.logger.warn('Plotting the training statistics plot for more than 250 clients will take a long time and is discouraged.')
-        if command_line_arguments.number_of_clients > 1000 and command_line_arguments.training_statistics_plot_output_file_path is not None:
-            self.logger.error('Plotting the training statistics plot for more than 1000 will take too long. Existing.')
-            sys.exit(1)
+        # Makes sure that the output directory exists
+        os.makedirs(command_line_arguments.output_path, exist_ok=True)
 
         # Selects the device the training and validation will be performed on
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -103,21 +95,43 @@ class FederatedAveragingCommand(BaseCommand):
                 validation_accuracy
             )
 
-        # Saves the trained global to disk
-        if command_line_arguments.model_output_file_path is not None:
-            self.logger.info(
-                'Finished federated training, saving trained global model to disk (%s)...',
-                command_line_arguments.model_output_file_path
-            )
-            self.central_server.save_checkpoint(command_line_arguments.model_output_file_path)
+        # Saves the trained global model and the training statistics plot to disk
+        self.logger.info('Finished federated training...')
+        self.save_global_model_checkpoint(
+            command_line_arguments.model,
+            command_line_arguments.dataset,
+            communication_round,
+            command_line_arguments.output_path
+        )
+        self.save_training_statistics_plot(command_line_arguments.output_path)
 
-        # Saves the training statistics plot
-        if command_line_arguments.training_statistics_plot_output_file_path is not None:
-            self.logger.info(
-                'Plotting training statistics and saving the plot to disk (%s)...',
-                command_line_arguments.training_statistics_plot_output_file_path
-            )
-            self.central_server.save_training_statistics_plot(command_line_arguments.training_statistics_plot_output_file_path)
+    def save_global_model_checkpoint(self, model_type: str, dataset_type: str, communication_round: str, output_path: str) -> None:
+        """Saves the current state of the global model of the central server to disk.
+
+        Args:
+            model_type (str): The type of model that is being trained.
+            dataset_type (str): The type of dataset that the model being trained on.
+            communication_round (str): The current communication round.
+            output_path (str): The path to the directory into which the model checkpoint file is to be saved.
+        """
+
+        model_checkpoint_file_path = os.path.join(
+            output_path,
+            f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}-{model_type}-{dataset_type}-fedavg-{communication_round}-communication_round.pt'
+        )
+        self.logger.info('Saving trained global model to disk (%s)...', model_checkpoint_file_path)
+        self.central_server.save_checkpoint(model_checkpoint_file_path)
+
+    def save_training_statistics_plot(self, output_path: str) -> None:
+        """Plots the training statistics and saves the resulting plot to disk.
+
+        Args:
+            output_path (str): The path to the directory into which the plot is to be saved.
+        """
+
+        training_statistics_plot_file_path = os.path.join(output_path, 'training-statistics-plot.png')
+        self.logger.info('Plotting training statistics and saving the plot to disk (%s)...', training_statistics_plot_file_path)
+        self.central_server.save_training_statistics_plot(training_statistics_plot_file_path)
 
     def abort_training(self) -> None:
         """Graciously aborts the federated learning."""

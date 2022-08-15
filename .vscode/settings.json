@@ -19,6 +19,7 @@
         "convolutional",
         "cuda",
         "facecolor",
+        "fedavg",
         "figsize",
         "fontset",
         "fontsize",

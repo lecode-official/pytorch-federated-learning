@@ -4,6 +4,10 @@ import numpy
 import torch
 
 
+AVAILABLE_MODELS = ['lenet-5']
+DEFAULT_MODEL = 'lenet-5'
+
+
 class LeNet5(torch.nn.Module):
     """Represents the classical CNN model architecture LeNet5."""
 

@@ -4,6 +4,10 @@ import torch
 import torchvision
 
 
+AVAILABLE_DATASETS = ['mnist', 'cifar-10']
+DEFAULT_DATASET = 'cifar-10'
+
+
 def load_cifar_10(path: str) -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset]:
     """Loads the training and validation subsets of the CIFAR-10 dataset.
 
