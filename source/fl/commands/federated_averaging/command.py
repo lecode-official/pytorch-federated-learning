@@ -1,6 +1,7 @@
 """Contains the federated-averaging command."""
 
 import os
+import csv
 import signal
 import logging
 from datetime import datetime
@@ -34,6 +35,17 @@ class FederatedAveragingCommand(BaseCommand):
 
         # Makes sure that the output directory exists
         os.makedirs(command_line_arguments.output_path, exist_ok=True)
+
+        # Prepares the training statistics CSV files by write the header to file
+        with open(os.path.join(command_line_arguments.output_path, 'central-server-training-statistics.csv'), 'w') as training_statistics_file:
+            csv_writer = csv.writer(training_statistics_file)
+            csv_writer.writerow(['timestamp', 'communication_round', 'validation_loss', 'validation_accuracy'])
+        with open(os.path.join(command_line_arguments.output_path, 'client-training-statistics.csv'), 'w') as training_statistics_file:
+            csv_writer = csv.writer(training_statistics_file)
+            csv_row = ['timestamp', 'communication_round']
+            for client_id in range(1, command_line_arguments.number_of_clients + 1):
+                csv_row.extend([f'client_{client_id}_training_loss', f'client_{client_id}_training_accuracy'])
+            csv_writer.writerow(csv_row)
 
         # Saves the hyperparameters for later reference
         with open(os.path.join(command_line_arguments.output_path, 'hyperparameters.yaml'), 'w') as hyperparameters_file:
@@ -115,32 +127,47 @@ class FederatedAveragingCommand(BaseCommand):
             # model and instructed to train the model on their local data, after that, the clients send back their updated models and the central
             # server aggregates them to form a new global model
             self.logger.info('Starting communication round %d...', communication_round)
-            self.central_server.train_clients_and_update_global_model(command_line_arguments.number_of_local_epochs)
+            client_training_losses, client_training_accuracies = self.central_server.train_clients_and_update_global_model(
+                command_line_arguments.number_of_local_epochs
+            )
 
             # Validates the updated global model and reports its loss and accuracy
-            validation_loss, validation_accuracy = self.central_server.validate()
+            central_server_validation_loss, central_server_validation_accuracy = self.central_server.validate()
             self.logger.info(
                 'Finished communication round %d, validation loss: %f, validation accuracy: %f',
                 communication_round,
-                validation_loss,
-                validation_accuracy * 100
+                central_server_validation_loss,
+                central_server_validation_accuracy * 100
             )
+
+            # Writes the training statistics into CSV files (the training statistics of the central server and the clients are stored in a separate
+            # CSV files)
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            with open(os.path.join(command_line_arguments.output_path, 'central-server-training-statistics.csv'), 'a') as training_statistics_file:
+                csv_writer = csv.writer(training_statistics_file)
+                csv_writer.writerow([timestamp, communication_round, central_server_validation_loss, central_server_validation_accuracy])
+            with open(os.path.join(command_line_arguments.output_path, 'client-training-statistics.csv'), 'a') as training_statistics_file:
+                csv_writer = csv.writer(training_statistics_file)
+                csv_row = [timestamp, communication_round]
+                for client_index in range(command_line_arguments.number_of_clients):
+                    csv_row.extend([client_training_losses[client_index], client_training_accuracies[client_index]])
+                csv_writer.writerow(csv_row)
 
             # If the updated global model has a better accuracy than any of its predecessors, then a checkpoint is saved for it, if the number of
             # checkpoint files that have already been saved, exceeds the number of checkpoint files to retain, then the oldest one is deleted (this is
             # not done, if this is the last communication round, because the final model is saved anyway)
             if communication_round != command_line_arguments.number_of_communication_rounds:
-                if validation_accuracy > current_greatest_validation_accuracy:
+                if central_server_validation_accuracy > current_greatest_validation_accuracy:
 
                     # Since the updated global model outperformed all previous global models, a checkpoint is saved for it
                     global_model_checkpoint_file_path = self.save_global_model_checkpoint(
                         command_line_arguments.model,
                         command_line_arguments.dataset,
                         communication_round,
-                        validation_accuracy * 100,
+                        central_server_validation_accuracy * 100,
                         command_line_arguments.output_path
                     )
-                    current_greatest_validation_accuracy = validation_accuracy
+                    current_greatest_validation_accuracy = central_server_validation_accuracy
 
                     # If the number of saved checkpoint files exceeds the number of checkpoint files that should be retained, the oldest checkpoint
                     # file is deleted
@@ -156,7 +183,7 @@ class FederatedAveragingCommand(BaseCommand):
             command_line_arguments.model,
             command_line_arguments.dataset,
             communication_round,
-            validation_accuracy * 100,
+            central_server_validation_accuracy * 100,
             command_line_arguments.output_path
         )
         self.save_training_statistics_plot(command_line_arguments.output_path)

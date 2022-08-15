@@ -350,13 +350,17 @@ class FederatedLearningCentralServer:
         # Initializes a flag, which is set when the training should be aborted
         self.is_aborting = False
 
-    def train_clients_and_update_global_model(self, number_of_local_epochs: int) -> None:
+    def train_clients_and_update_global_model(self, number_of_local_epochs: int) -> tuple[list[float], list[float]]:
         """Updates the local models of the clients using the parameters of the global model and instructs the clients to train their updated local
         model on their local private training data for the specified number of epochs. Then the global model of the central server is updated by
         aggregating the parameters of the local models of the clients.
 
         Args:
             number_of_local_epochs (int): The number of epochs for which the clients should train the model on their local data.
+
+        Returns:
+            tuple[list[float], list[float]]: Returns a tuple containing a list of training losses and a list of training accuracies of all clients.
+                Clients that did not participate in the current communication round have a loss and an accuracy of numpy.nan.
         """
 
         # Selects a subsample of the client population for the current communication round
@@ -364,32 +368,44 @@ class FederatedLearningCentralServer:
 
         # Cycles through all clients, sends them the global model, and instructs them to train their updated local models on their local data
         global_model_parameters = self.global_model.state_dict()
+        client_training_losses = [numpy.nan for _ in range(len(self.clients))]
+        client_training_accuracies = [numpy.nan for _ in range(len(self.clients))]
         for index, client in enumerate(client_subsample):
+
+            # If the user hit Ctrl+C, then the communication round is aborted
             if self.is_aborting:
                 self.logger.info('Aborting communication round... Hit Ctrl+C again to force quit...')
                 break
+
+            # Trains the client and reports the training loss and training accuracy of it
             self.logger.info('Training client %d (%d/%d)...', client.client_id, index + 1, self.number_of_clients_per_communication_round)
             training_loss, training_accuracy, local_model_parameters = client.train(global_model_parameters, number_of_local_epochs)
-            self.client_training_losses[client.client_id - 1].append(training_loss)
-            self.client_training_accuracies[client.client_id - 1].append(training_accuracy)
             self.logger.info(
                 'Finished training client %d, Training loss: %f, training accuracy %f',
                 client.client_id,
                 training_loss,
                 training_accuracy
             )
+
+            # Stores the training loss and training accuracy of the client
+            client_training_losses[client.client_id - 1] = training_loss
+            client_training_accuracies[client.client_id - 1] = training_accuracy
+
+            # Adds the updated parameters of the local model of the client to the aggregated model parameters from which the global model will be
+            # updated after the communication round has finished
             self.model_aggregation_strategy.add_local_model(local_model_parameters)
 
-        # Since client sub-sampling is used, all clients that did not participate in this communication round do not have any values in their training
-        # statistics, therefore, NaN is added as training loss/accuracy for all clients that did not participate (when plotting these, the NaN values
-        # will appear as gaps in the plot, which is what we would expect)
+        # Adds the client training losses and training accuracies to the global training statistics
         for client in self.clients:
-            if client not in client_subsample:
-                self.client_training_losses[client.client_id - 1].append(numpy.nan)
-                self.client_training_accuracies[client.client_id - 1].append(numpy.nan)
+            self.client_training_losses[client.client_id - 1].append(client_training_losses[client.client_id - 1])
+            self.client_training_accuracies[client.client_id - 1].append(client_training_accuracies[client.client_id - 1])
 
         # Updates the parameters of the global model by aggregating the updated parameters of the clients using federated averaging (FedAvg)
         self.model_aggregation_strategy.update_global_model(self.global_model)
+
+        # Returns the training losses and training accuracies of all clients (clients that did not participate in the communication round have a loss
+        # and accuracy of numpy.nan)
+        return client_training_losses, client_training_accuracies
 
     def validate(self) -> tuple[float, float]:
         """Validates the global model of the central server.
