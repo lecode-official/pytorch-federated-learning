@@ -7,7 +7,7 @@ import fl.datasets
 from fl.commands.base import BaseCommandDescriptor
 
 
-class FederatedAveragingCommand(BaseCommandDescriptor):
+class FederatedAveragingCommandDescriptor(BaseCommandDescriptor):
     """Represents the descriptor for the federated-averaging command."""
 
     def get_name(self) -> str:

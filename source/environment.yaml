@@ -6,6 +6,7 @@ dependencies:
   - _libgcc_mutex=0.1=main
   - _openmp_mutex=5.1=1_gnu
   - blas=1.0=mkl
+  - bottleneck=1.3.5=py310ha9d4c09_0
   - brotli=1.0.9=h5eee18b_7
   - brotli-bin=1.0.9=h5eee18b_7
   - bzip2=1.0.8=h7b6447c_0
@@ -74,11 +75,13 @@ dependencies:
   - nettle=3.7.3=hbbd107a_1
   - nspr=4.33=h295c915_0
   - nss=3.74=h0370c37_0
+  - numexpr=2.8.3=py310hcea2de6_0
   - numpy=1.23.1=py310h1794996_0
   - numpy-base=1.23.1=py310hcba007f_0
   - openh264=2.1.1=h4ff587b_0
   - openssl=1.1.1q=h7f8727e_0
   - packaging=21.3=pyhd3eb1b0_0
+  - pandas=1.4.3=py310h6a678d5_0
   - pcre=8.45=h295c915_0
   - pip=22.1.2=py310h06a4308_0
   - ply=3.11=py310h06a4308_0
@@ -89,6 +92,7 @@ dependencies:
   - python-dateutil=2.8.2=pyhd3eb1b0_0
   - pytorch=1.12.1=py3.10_cuda10.2_cudnn7.6.5_0
   - pytorch-mutex=1.0=cuda
+  - pytz=2022.1=py310h06a4308_0
   - qt-main=5.15.2=h327a75a_7
   - qt-webengine=5.15.9=hd2b0992_4
   - qtwebkit=5.212=h4eab89a_4

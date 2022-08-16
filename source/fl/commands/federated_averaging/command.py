@@ -187,7 +187,6 @@ class FederatedAveragingCommand(BaseCommand):
             central_server_validation_accuracy * 100,
             command_line_arguments.output_path
         )
-        self.save_training_statistics_plot(command_line_arguments.output_path)
 
     def save_global_model_checkpoint(self, model_type: str, dataset_type: str, communication_round: str, accuracy: float, output_path: str) -> str:
         """Saves the current state of the global model of the central server to disk.
@@ -211,17 +210,6 @@ class FederatedAveragingCommand(BaseCommand):
         self.logger.info('Saving global model checkpoint to disk (%s)...', global_model_checkpoint_file_path)
         self.central_server.save_checkpoint(global_model_checkpoint_file_path)
         return global_model_checkpoint_file_path
-
-    def save_training_statistics_plot(self, output_path: str) -> None:
-        """Plots the training statistics and saves the resulting plot to disk.
-
-        Args:
-            output_path (str): The path to the directory into which the plot is to be saved.
-        """
-
-        training_statistics_plot_file_path = os.path.join(output_path, 'training-statistics-plot.png')
-        self.logger.info('Plotting training statistics and saving the plot to disk (%s)...', training_statistics_plot_file_path)
-        self.central_server.save_training_statistics_plot(training_statistics_plot_file_path)
 
     def abort_training(self) -> None:
         """Graciously aborts the federated learning."""

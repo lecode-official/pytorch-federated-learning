@@ -8,10 +8,6 @@ from typing import Optional, Union
 
 import numpy
 import torch
-import matplotlib
-from tqdm import tqdm
-from matplotlib import pyplot
-from matplotlib.ticker import MaxNLocator
 
 from fl.models import create_model
 from fl.lifecycle import Trainer, Validator
@@ -349,12 +345,6 @@ class FederatedLearningCentralServer:
         # Initializes the federated averaging algorithm
         self.model_aggregation_strategy = FederatedAveraging(self.global_model)
 
-        # Initializes the statistics
-        self.client_training_losses = [[] for _ in self.clients]
-        self.client_training_accuracies = [[] for _ in self.clients]
-        self.central_server_validation_losses = []
-        self.central_server_validation_accuracies = []
-
         # Initializes a flag, which is set when the training should be aborted
         self.is_aborting = False
 
@@ -403,11 +393,6 @@ class FederatedLearningCentralServer:
             # updated after the communication round has finished
             self.model_aggregation_strategy.add_local_model(local_model_parameters)
 
-        # Adds the client training losses and training accuracies to the global training statistics
-        for client in self.clients:
-            self.client_training_losses[client.client_id - 1].append(client_training_losses[client.client_id - 1])
-            self.client_training_accuracies[client.client_id - 1].append(client_training_accuracies[client.client_id - 1])
-
         # Updates the parameters of the global model by aggregating the updated parameters of the clients using federated averaging (FedAvg)
         self.model_aggregation_strategy.update_global_model(self.global_model)
 
@@ -422,12 +407,7 @@ class FederatedLearningCentralServer:
             tuple[float, float]: Returns the validation loss and the validation accuracy of the global model.
         """
 
-        validation_loss, validation_accuracy = self.validator.validate()
-
-        self.central_server_validation_losses.append(validation_loss)
-        self.central_server_validation_accuracies.append(validation_accuracy)
-
-        return validation_loss, validation_accuracy
+        return self.validator.validate()
 
     def abort_training(self) -> None:
         """Graciously aborts the federated learning."""
@@ -444,160 +424,3 @@ class FederatedLearningCentralServer:
         """
 
         torch.save(self.global_model.state_dict(), output_file_path)
-
-    def save_training_statistics_plot(self, output_file_path: str) -> None:
-        """Plots the training statistics and save the resulting plot to a file.
-
-        Args:
-            output_file_path (str): The path to the file into which the statistics plot is to be saved.
-        """
-
-        # Makes sure that Matplotlib uses a similar font to LaTeX, so that the figures are consistent with LaTeX documents
-        matplotlib.rcParams['mathtext.fontset'] = 'stix'
-        matplotlib.rcParams['font.family'] = 'STIXGeneral'
-
-        # Plotting more than 100 clients becomes really slow and the resulting plots are gigantic, therefore, only the first 100 clients are plotted
-        # if the number of clients exceeds 100
-        clients_to_plot = self.clients[:100]
-        client_training_losses = self.client_training_losses[:100]
-        client_training_accuracies = self.client_training_accuracies[:100]
-
-        # Creates the figure
-        width, height = self.determine_optimal_grid_size(len(clients_to_plot), prefer_larger_width=True)
-        figure = pyplot.figure(figsize=(int(2.5 * width), height), dpi=300)
-        grid_specification = figure.add_gridspec(ncols=width + 1, nrows=height, width_ratios=[width] + [1] * width)
-
-        # Determines the limits of the y-axis for the loss, so that the y-axes of the central server and the clients are all on the same scale (the
-        # accuracy is bounded between 0 and 1, but the loss can grow almost arbitrarily)
-        loss_axis_upper_y_limit = numpy.nanmax([loss for losses in client_training_losses for loss in losses] + self.central_server_validation_losses)
-
-        # Determines the final validation loss and validation accuracy of the global model
-        final_central_server_validation_loss = self.central_server_validation_losses[-1]
-        final_central_server_validation_accuracy = self.central_server_validation_accuracies[-1]
-
-        # Creates the plot for the validation loss and validation accuracy of the central server
-        central_server_validation_accuracy_axis = figure.add_subplot(grid_specification[:, 0])
-        central_server_validation_accuracy_axis.set_ylim(0.0, 1.0)
-        central_server_validation_accuracy_axis.set_xlabel('Communication Rounds')
-        central_server_validation_accuracy_axis.set_ylabel('Validation Accuracy')
-        central_server_validation_accuracy_axis.set_title('Central Server')
-        central_server_validation_accuracy_axis.xaxis.set_major_locator(MaxNLocator(integer=True))
-        central_server_validation_accuracy_axis.plot(
-            list(range(1, len(self.central_server_validation_accuracies) + 1)),
-            self.central_server_validation_accuracies,
-            color='blue',
-            linewidth=0.5,
-            marker='.',
-            markersize=8,
-            label=f'Accuracy (Final Accuracy: {final_central_server_validation_accuracy:.2})'
-        )
-        accuracy_handles, accuracy_labels = central_server_validation_accuracy_axis.get_legend_handles_labels()
-        central_server_validation_loss_axis = central_server_validation_accuracy_axis.twinx()
-        central_server_validation_loss_axis.set_ylabel('Validation Loss')
-        central_server_validation_loss_axis.plot(
-            list(range(1, len(self.central_server_validation_losses) + 1)),
-            self.central_server_validation_losses,
-            color='red',
-            linewidth=0.5,
-            marker='.',
-            markersize=8,
-            label=f'Loss (Final Loss: {final_central_server_validation_loss:.2})'
-        )
-        central_server_validation_loss_axis.set_ylim((0.0, loss_axis_upper_y_limit))
-        loss_handles, loss_labels = central_server_validation_loss_axis.get_legend_handles_labels()
-        central_server_validation_accuracy_axis.legend(accuracy_handles + loss_handles, accuracy_labels + loss_labels)
-
-        # Creates the plots for the training loss and training accuracy of the clients
-        with tqdm(total=len(clients_to_plot), desc=f'Plotting', unit='clients') as progress_bar:
-            federated_learning_client_index = 0
-            for column in range(1, width + 1):
-                for row in range(height):
-                    federated_learning_client_training_accuracy_axis = figure.add_subplot(grid_specification[row, column])
-                    federated_learning_client_training_accuracy_axis.tick_params(
-                        color='white',
-                        left=False,
-                        bottom=False,
-                        labelleft=False,
-                        labelbottom=False
-                    )
-                    federated_learning_client_training_accuracy_axis.set_ylim(0.0, 1.0)
-                    federated_learning_client_training_accuracy_axis.text(
-                        0.5,
-                        0.1,
-                        str(federated_learning_client_index + 1),
-                        horizontalalignment='center',
-                        verticalalignment='center',
-                        fontsize='small',
-                        transform=federated_learning_client_training_accuracy_axis.transAxes
-                    )
-                    federated_learning_client_training_accuracy_axis.plot(
-                        list(range(1, len(client_training_accuracies[federated_learning_client_index]) + 1)),
-                        client_training_accuracies[federated_learning_client_index],
-                        color='blue',
-                        linewidth=0.5,
-                        marker='.',
-                        markersize=4
-                    )
-                    federated_learning_client_training_loss_axis = federated_learning_client_training_accuracy_axis.twinx()
-                    federated_learning_client_training_loss_axis.set_ylim((0.0, loss_axis_upper_y_limit))
-                    federated_learning_client_training_loss_axis.tick_params(right=False, labelright=False)
-                    federated_learning_client_training_loss_axis.plot(
-                        list(range(1, len(client_training_losses[federated_learning_client_index]) + 1)),
-                        client_training_losses[federated_learning_client_index],
-                        color='red',
-                        linewidth=0.5,
-                        marker='.',
-                        markersize=4
-                    )
-                    federated_learning_client_index += 1
-                    progress_bar.update(1)
-
-        # Creates an invisible axis, which is just a hack to place a title above the client plots
-        federated_learning_client_title_axis = figure.add_subplot(grid_specification[:, 1:])
-        federated_learning_client_title_axis.set_xticks([])
-        federated_learning_client_title_axis.set_yticks([])
-        federated_learning_client_title_axis.spines['right'].set_visible(False)
-        federated_learning_client_title_axis.spines['top'].set_visible(False)
-        federated_learning_client_title_axis.spines['bottom'].set_visible(False)
-        federated_learning_client_title_axis.spines['left'].set_visible(False)
-        federated_learning_client_title_axis.set_facecolor('none')
-        federated_learning_client_title_axis.set_title('Clients')
-
-        # Saves the plot
-        figure.tight_layout()
-        grid_specification.tight_layout(figure)
-        figure.savefig(output_file_path)
-
-    def determine_optimal_grid_size(self, number_of_elements: int, prefer_larger_width: bool) -> list[int]:
-        """Determines the optimal edge lengths for a grid that should contain the specified number of elements. Each number of elements has multiple
-        grids in which they can be arranged, but the optimal grid size is the one where both sides are as large as possible.
-
-        Args:
-            number (int): The number of elements that should be contained in the grid.
-            prefer_larger_width (bool): For element counts that are not perfect squares, there are always two optimal grid sizes: one where the width
-                is larger and one where the height is larger. This parameter controls which of the two is selected. If True, the grid size with a
-                larger width is selected and if False, the grid size with a larger height is selected. For example, if there are 50 elements, then the
-                optimal grid sizes are 5 by 10 and 10 by 5 elements. If larger widths are preferred, then 10 by 5 elements will be chosen as the
-                optimal grid size, otherwise 5 by 10 will be chosen.
-
-        Returns:
-            tuple[int, int]: Returns the optimal grid size as tuple, where the first element is the width and the second element is the height.
-        """
-
-        # Grid sizes are always composed of widths and heights that are integer divisors of the number of elements, therefore all divisors of the
-        # number of elements are determined
-        grid_sizes = []
-        for divisor_candidate in range(1, number_of_elements + 1):
-            if number_of_elements % divisor_candidate == 0:
-                grid_sizes.append((divisor_candidate, number_of_elements // divisor_candidate))
-
-        # To find the optimal grid size, the grid sizes are ordered by their sum, the optimal grid sizes are always the ones where the sum of width
-        # and height are lowest, if the number of elements is not a perfect square then there are always two optimal grid sizes, one where the width
-        # is larger and one where the height is larger, therefore the grid sizes are then ordered by their width or height, which is controlled by the
-        # prefer_larger_width parameter (if larger widths should be preferred, then the grid sizes are ordered by height, because the grid sizes are
-        # ordered in ascending order and the grid size with the lower height will be first, the same applies accordingly when larger heights should be
-        # preferred, in which case the grid sizes are ordered by width)
-        grid_sizes = sorted(grid_sizes, key=lambda grid_size: (sum(grid_size), grid_size[1 if prefer_larger_width else 0]))
-
-        # Now the optimal grid size is the first element in the list of all grid sizes
-        return grid_sizes[0]

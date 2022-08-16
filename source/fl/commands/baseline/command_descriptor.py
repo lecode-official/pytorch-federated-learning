@@ -7,7 +7,7 @@ import fl.datasets
 from fl.commands.base import BaseCommandDescriptor
 
 
-class BaselineCommand(BaseCommandDescriptor):
+class BaselineCommandDescriptor(BaseCommandDescriptor):
     """Represents the descriptor for the baseline command."""
 
     def get_name(self) -> str:
