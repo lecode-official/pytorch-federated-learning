@@ -36,7 +36,7 @@ class FederatedAveragingCommand(BaseCommand):
         # Makes sure that the output directory exists
         os.makedirs(command_line_arguments.output_path, exist_ok=True)
 
-        # Prepares the training statistics CSV files by write the header to file
+        # Prepares the training statistics CSV files by writing the headers to files
         with open(os.path.join(command_line_arguments.output_path, 'central-server-training-statistics.csv'), 'w') as training_statistics_file:
             csv_writer = csv.writer(training_statistics_file)
             csv_writer.writerow(['timestamp', 'communication_round', 'validation_loss', 'validation_accuracy'])
@@ -50,11 +50,12 @@ class FederatedAveragingCommand(BaseCommand):
         # Saves the hyperparameters for later reference
         with open(os.path.join(command_line_arguments.output_path, 'hyperparameters.yaml'), 'w') as hyperparameters_file:
             yaml.dump({
+                'method': 'federated_averaging',
                 'number_of_clients': command_line_arguments.number_of_clients,
                 'number_of_clients_per_communication_round': \
                     command_line_arguments.number_of_clients_per_communication_round or command_line_arguments.number_of_clients,
-                'model': command_line_arguments.model,
-                'dataset': command_line_arguments.dataset,
+                'model': command_line_arguments.model_type,
+                'dataset': command_line_arguments.dataset_type,
                 'dataset_path': command_line_arguments.dataset_path,
                 'number_of_communication_rounds': command_line_arguments.number_of_communication_rounds,
                 'number_of_local_epochs': command_line_arguments.number_of_local_epochs,
@@ -73,9 +74,9 @@ class FederatedAveragingCommand(BaseCommand):
             device = 'cpu'
 
         # Loading the datasets
-        self.logger.info('Loading dataset (%s)...', command_line_arguments.dataset)
+        self.logger.info('Loading dataset (%s)...', command_line_arguments.dataset_type)
         training_subset, validation_subset, sample_shape, number_of_classes = create_dataset(
-            command_line_arguments.dataset,
+            command_line_arguments.dataset_type,
             command_line_arguments.dataset_path
         )
         client_subsets = split_dataset(training_subset, command_line_arguments.number_of_clients)
@@ -87,7 +88,7 @@ class FederatedAveragingCommand(BaseCommand):
             clients.append(FederatedLearningClient(
                 index + 1,
                 device,
-                command_line_arguments.model,
+                command_line_arguments.model_type,
                 client_subsets[index],
                 sample_shape,
                 number_of_classes,
@@ -103,7 +104,7 @@ class FederatedAveragingCommand(BaseCommand):
             clients,
             command_line_arguments.number_of_clients_per_communication_round,
             device,
-            command_line_arguments.model,
+            command_line_arguments.model_type,
             validation_subset,
             sample_shape,
             number_of_classes,
@@ -154,15 +155,15 @@ class FederatedAveragingCommand(BaseCommand):
                 csv_writer.writerow(csv_row)
 
             # If the updated global model has a better accuracy than any of its predecessors, then a checkpoint is saved for it, if the number of
-            # checkpoint files that have already been saved, exceeds the number of checkpoint files to retain, then the oldest one is deleted (this is
-            # not done, if this is the last communication round, because the final model is saved anyway)
+            # checkpoint files that have already been saved, exceeds the number of checkpoint files to retain, then the oldest one is deleted (the
+            # checkpoint file is not saved, if this is the last communication round, because the final model is saved anyway)
             if communication_round != command_line_arguments.number_of_communication_rounds:
                 if central_server_validation_accuracy > current_greatest_validation_accuracy:
 
                     # Since the updated global model outperformed all previous global models, a checkpoint is saved for it
                     global_model_checkpoint_file_path = self.save_global_model_checkpoint(
-                        command_line_arguments.model,
-                        command_line_arguments.dataset,
+                        command_line_arguments.model_type,
+                        command_line_arguments.dataset_type,
                         communication_round,
                         central_server_validation_accuracy * 100,
                         command_line_arguments.output_path
@@ -180,8 +181,8 @@ class FederatedAveragingCommand(BaseCommand):
         # Saves the trained global model and the training statistics plot to disk
         self.logger.info('Finished federated training...')
         self.save_global_model_checkpoint(
-            command_line_arguments.model,
-            command_line_arguments.dataset,
+            command_line_arguments.model_type,
+            command_line_arguments.dataset_type,
             communication_round,
             central_server_validation_accuracy * 100,
             command_line_arguments.output_path

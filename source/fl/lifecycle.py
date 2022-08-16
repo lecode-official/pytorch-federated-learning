@@ -1,5 +1,6 @@
 """Lifecycle primitives for neural network models, including training and validation."""
 
+import logging
 from typing import Union
 
 import torch
@@ -40,6 +41,12 @@ class Trainer:
         self.momentum = momentum
         self.weight_decay = weight_decay
         self.batch_size = batch_size
+
+        # Initializes the logger
+        self.logger = logging.getLogger(__name__ + '.' + self.__class__.__name__)
+
+        # Initializes a flag, which is set when the training should be aborted
+        self.is_aborting = False
 
         # Makes sure that the model is on the specified device
         self.model = self.model.to(self.device)
@@ -101,8 +108,27 @@ class Trainer:
             loss.backward()
             self.optimizer.step()
 
+            # If the user hit Ctrl+C, then the training of the model is aborted
+            if self.is_aborting:
+                self.logger.info('Aborting training... Hit Ctrl+C again to force quit...')
+                break
+
         # Returns the training loss and accuracy
         return mean_loss.compute().cpu().numpy().item(), accuracy.compute().cpu().numpy().item()
+
+    def abort_training(self) -> None:
+        """Graciously aborts the training."""
+
+        self.is_aborting = True
+
+    def save_checkpoint(self, output_file_path: str) -> None:
+        """Saves the current state of the model to a checkpoint file.
+
+        Args:
+            output_path: The path to the file into which the model is to be saved.
+        """
+
+        torch.save(self.model.state_dict(), output_file_path)
 
 
 class Validator:

@@ -225,6 +225,9 @@ class FederatedLearningClient:
         # Initializes the logger
         self.logger = logging.getLogger(__name__ + '.' + self.__class__.__name__)
 
+        # Initializes the property for the trainer
+        self.trainer = None
+
         # Initializes a flag, which is set when the training should be aborted
         self.is_aborting = False
 
@@ -250,7 +253,7 @@ class FederatedLearningClient:
             local_model_parameters[parameter_name].copy_(global_model_parameters[parameter_name])
 
         # Creates the trainer for the model
-        trainer = Trainer(
+        self.trainer = Trainer(
             self.device,
             local_model,
             self.local_training_subset,
@@ -267,15 +270,19 @@ class FederatedLearningClient:
             if self.is_aborting:
                 self.logger.info('Aborting local training of client %d... Hit Ctrl+C again to force quit...', self.client_id)
                 break
-            training_loss, training_accuracy = trainer.train_for_one_epoch()
+            training_loss, training_accuracy = self.trainer.train_for_one_epoch()
 
         # Returns the training loss, training accuracy, and the updated parameters of the local model
-        return training_loss, training_accuracy, trainer.model.state_dict()
+        local_model_parameters = self.trainer.model.state_dict()
+        self.trainer = None
+        return training_loss, training_accuracy, local_model_parameters
 
     def abort_training(self) -> None:
         """Graciously aborts the federated learning."""
 
         self.is_aborting = True
+        if self.trainer is not None:
+            self.trainer.abort_training()
 
 
 class FederatedLearningCentralServer:
@@ -428,6 +435,15 @@ class FederatedLearningCentralServer:
         for client in self.clients:
             client.abort_training()
         self.is_aborting = True
+
+    def save_checkpoint(self, output_file_path: str) -> None:
+        """Saves the current state of the global model to a checkpoint file.
+
+        Args:
+            output_path: The path to the file into which the model is to be saved.
+        """
+
+        torch.save(self.global_model.state_dict(), output_file_path)
 
     def save_training_statistics_plot(self, output_file_path: str) -> None:
         """Plots the training statistics and save the resulting plot to a file.
@@ -585,12 +601,3 @@ class FederatedLearningCentralServer:
 
         # Now the optimal grid size is the first element in the list of all grid sizes
         return grid_sizes[0]
-
-    def save_checkpoint(self, output_file_path: str) -> None:
-        """Saves the current state of the global model to a file.
-
-        Args:
-            output_path: The path to the file into which the model is to be saved.
-        """
-
-        torch.save(self.global_model.state_dict(), output_file_path)

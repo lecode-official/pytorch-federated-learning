@@ -1,4 +1,4 @@
-"""Contains the descriptor for the federated-averaging command."""
+"""Contains the descriptor for the baseline command."""
 
 from argparse import ArgumentParser
 
@@ -7,8 +7,8 @@ import fl.datasets
 from fl.commands.base import BaseCommandDescriptor
 
 
-class FederatedAveragingCommand(BaseCommandDescriptor):
-    """Represents the descriptor for the federated-averaging command."""
+class BaselineCommand(BaseCommandDescriptor):
+    """Represents the descriptor for the baseline command."""
 
     def get_name(self) -> str:
         """Gets the name of the command.
@@ -17,7 +17,7 @@ class FederatedAveragingCommand(BaseCommandDescriptor):
             str: Returns the name of the command.
         """
 
-        return 'federated-averaging'
+        return 'baseline'
 
     def get_description(self) -> str:
         """Gets the description of the command.
@@ -26,7 +26,7 @@ class FederatedAveragingCommand(BaseCommandDescriptor):
             str: Returns the description of the command.
         """
 
-        return 'Performs federating learning using federated averaging (FedAvg).'
+        return 'Performs non-federating learning as a baseline to compare federated learning algorithms against.'
 
     def add_arguments(self, argument_parser: ArgumentParser) -> None:
         """Adds the command line arguments to the command line argument parser.
@@ -35,27 +35,6 @@ class FederatedAveragingCommand(BaseCommandDescriptor):
             argument_parser (ArgumentParser): The command line argument parser to which the arguments are to be added.
         """
 
-        argument_parser.add_argument(
-            '-n',
-            '--number-of-clients',
-            dest='number_of_clients',
-            type=int,
-            default=10,
-            help='The number of federated learning clients. Defaults to 10.'
-        )
-        argument_parser.add_argument(
-            '-N',
-            '--number-of-clients-per-communication-round',
-            dest='number_of_clients_per_communication_round',
-            type=int,
-            default=None,
-            help='''One of the primary bottlenecks in the communication between the central server and its clients is the number of clients that the
-                central server has to communicate with in each communication round. One easy method of reducing this overhead, is to subsample the
-                client population. In each communication round, the central server only selects a subset of clients, which will train and communicate
-                their updates back. This parameter specifies the number of clients that will be selected at random in each communication round.
-                Defaults to the number of clients.
-            '''
-        )
         argument_parser.add_argument(
             '-m',
             '--model',
@@ -86,22 +65,11 @@ class FederatedAveragingCommand(BaseCommandDescriptor):
         )
         argument_parser.add_argument(
             '-r',
-            '--number-of-communication-rounds',
-            dest='number_of_communication_rounds',
+            '--number-of-epochs',
+            dest='number_of_epochs',
             type=int,
-            default=50,
-            help='''The number of communication rounds of the federated learning. One communication round consists of sending the global model to the
-                clients, instructing them to perform training on their local dataset, and aggregating their updated local models into a new global
-                model. Defaults to 50.
-            '''
-        )
-        argument_parser.add_argument(
-            '-e',
-            '--number-of-local-epochs',
-            dest='number_of_local_epochs',
-            type=int,
-            default=5,
-            help='The number of communication epochs for which the clients are training the model on their local data. Defaults to 5.'
+            default=25,
+            help='The number of epochs to train the model for. Defaults to 25.'
         )
         argument_parser.add_argument(
             '-o',
@@ -109,8 +77,8 @@ class FederatedAveragingCommand(BaseCommandDescriptor):
             dest='output_path',
             type=str,
             required=True,
-            help='''The path to the directory into which checkpoints of the trained global model as well as training statistics are to be stored.
-                If the directory does not exist, it is created.
+            help='''The path to the directory into which checkpoints of the trained model as well as training statistics are to be stored. If the
+                directory does not exist, it is created.
             '''
         )
         argument_parser.add_argument(
@@ -119,10 +87,10 @@ class FederatedAveragingCommand(BaseCommandDescriptor):
             dest='number_of_checkpoint_files_to_retain',
             type=int,
             default=5,
-            help='''After each communication round, the current state of the global model is saved to a checkpoint file if its validation accuracy is
-                greater than any previous state of the global model. This can potentially result in a great number of checkpoint files that are being
-                stored. This argument controls how many past checkpoint files are being retained. If the number of past checkpoint files exceeds this
-                argument, then the oldest one is deleted. Defaults to 5.
+            help='''After each epochs, the current state of the model is saved to a checkpoint file if its validation accuracy is greater than any
+                previous state of the model. This can potentially result in a great number of checkpoint files that are being stored. This argument
+                controls how many past checkpoint files are being retained. If the number of past checkpoint files exceeds this argument, then the
+                oldest one is deleted. Defaults to 5.
             '''
         )
         argument_parser.add_argument(
@@ -154,8 +122,8 @@ class FederatedAveragingCommand(BaseCommandDescriptor):
             '--batch-size',
             dest='batch_size',
             type=int,
-            default=16,
-            help='The size of mini-batches that are to be used during training and validation. Defaults to 16.'
+            default=128,
+            help='The size of mini-batches that are to be used during training and validation. Defaults to 128.'
         )
         argument_parser.add_argument(
             '-c',
