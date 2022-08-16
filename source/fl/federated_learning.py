@@ -11,6 +11,7 @@ import torch
 import matplotlib
 from tqdm import tqdm
 from matplotlib import pyplot
+from matplotlib.ticker import MaxNLocator
 
 from fl.models import create_model
 from fl.lifecycle import Trainer, Validator
@@ -464,6 +465,7 @@ class FederatedLearningCentralServer:
         central_server_validation_accuracy_axis.set_xlabel('Communication Rounds')
         central_server_validation_accuracy_axis.set_ylabel('Validation Accuracy')
         central_server_validation_accuracy_axis.set_title('Central Server')
+        central_server_validation_accuracy_axis.xaxis.set_major_locator(MaxNLocator(integer=True))
         central_server_validation_accuracy_axis.plot(
             list(range(1, len(self.central_server_validation_accuracies) + 1)),
             self.central_server_validation_accuracies,

@@ -57,6 +57,7 @@
         "twinx",
         "Unflatten",
         "verticalalignment",
+        "xaxis",
         "xlabel",
         "xticks",
         "ylabel",
