@@ -95,6 +95,21 @@ python -m fl plot-training-statistics \
 
 For baseline experiments, the training and validation accuracy and loss is being plotted. For federated learning experiments, the validation accuracy and loss of the central server as well as the training accuracy and loss of the clients are plotted. Since federated learning experiments may have a large client population, the number of clients that are plotted is restricted. Be default, the first 100 clients are plotted. Using the `--maximum-number-of-clients-to-plot`/`-n` argument, the number of plotted clients can be configured. The `--client-sampling-method`/`-s` specifies how the clients are being sampled: when specifying `first` the first 100 clients are plotted and when specifying `random` 100 random clients are being plotted. Finally, the `--font`/`-f` argument can be used to specify whether a serif or a sans serif font will be used for rendering plots. A serif font is ideal when embedding the plot in a LaTeX document and a sans-serif font is recommended for other types of documents such as presentations. By default a serif font is used.
 
+## Preliminary Experiment Results
+
+### Baseline Experiments
+
+| Model   | Dataset | Learning Rate | Momentum | Weight Decay | Batch Size | Epochs | Best Validation Accuracy |
+|---------|---------|--------------:|---------:|-------------:|-----------:|-------:|-------------------------:|
+| LeNet-5 | MNIST   | 0.01          | 0.9      | 0.0005       | 128        | 50     | 99.09% (Epoch 44)        |
+
+### Federated Averaging Experiments
+
+| Model   | Dataset | Samples per Client | Learning Rate | Momentum | Weight Decay | Batch Size | Clients | Communication Rounds | Clients per Communication Round | Local Epochs | Best Validation Accuracy |
+|---------|---------|-------------------:|--------------:|---------:|-------------:|-----------:|--------:|---------------------:|--------------------------------:|-------------:|-------------------------:|
+| LeNet-5 | MNIST   | 60                 | 0.01          | 0.9      | 0.0005       | 60         | 1000    | 100                  | 100                             | 5            | 93.06% (Epoch 100)       |
+| LeNet-5 | MNIST   | 600                | 0.01          | 0.9      | 0.0005       | 16         | 100     | 20                   | 50                              | 5            | 98.48% (Epoch 20)        |
+
 ## Contributing
 
 If you'd like to contribute, there are multiple ways you can help out. If you find a bug or have a feature request, please feel free to open an issue on [GitHub](https://github.com/lecode-official/pytorch-federated-learning/issues). If you want to contribute code, please fork the repository and use a feature branch. Pull requests are always welcome. Before forking, please open an issue where you describe what you want to do. This helps to align your ideas with mine and may prevent you from doing work, that I am already planning on doing. If you have contributed to the project, please add yourself to the [contributors list](CONTRIBUTORS.md) and add all your changes to the [changelog](CHANGELOG.md). To help speed up the merging of your pull request, please comment and document your code extensively and try to emulate the coding style of the project.
