@@ -23,7 +23,7 @@ To use the virtual environment it must be activated first. After using the envir
 
 ```bash
 conda activate fad
-python -m fl <arguments...>
+python -m fl <command> <arguments...>
 conda deactivate
 ```
 
@@ -41,7 +41,9 @@ conda env update --file environment.yaml --prune
 
 ## Training Models
 
-To train models using federated learning and federated averaging, you can use the `fl` package. You have to specify the model that you want to train, the dataset that you want to train the model on, the path to the dataset, the number of communication rounds, the number of clients, and the path to the file into which the trained global model will be saved after the training. The following command will train a LeNet-5 on MNIST for 20 communication rounds with 10 clients and save the resulting global model checkpoint files and hyperparameters into the directory `./experiments`. The dataset is expected to be in the `./datasets/mnist` directory. If it does not exist, yet, it is automatically downloaded.
+To train models using federated learning or to perform baseline experiments, which can be used to compare federated learning results to, you can use the `fl` package. The `fl` package supports multiple commands. If you want to train a model using federated averaging, you can use the `federated-averaging` command. You have to specify the model that you want to train, the dataset that you want to train the model on, the path to the dataset, the number of communication rounds, the number of clients, and the path to the directory into which the global model checkpoints, hyperparameters, and the training statistics will be saved. The command will save the hyperparameters in a YAML file, and the training statistics of the central server and the clients in two separate CSV files. Furthermore, the command saves a global model checkpoint every time the validation accuracy of it outperforms all past global models. In order to not overcrowd the output directory, only the last 5 checkpoints are being retained and older ones are deleted. At the end of the training, the final model will be saved as well. The number of checkpoint files that are being retained can be configured using the `--number-of-checkpoint-files-to-retain`/`-R` argument.
+
+The following example will train a LeNet-5 on MNIST using federated averaging for 20 communication rounds with 10 clients and saves the resulting global model checkpoint files, hyperparameters, and training statistics into the directory `./experiments/fedavg`. The dataset is expected to be in the `./datasets/mnist` directory. If it does not exist, yet, it is automatically downloaded.
 
 ```bash
 python -m fl federated-averaging \
@@ -50,7 +52,7 @@ python -m fl federated-averaging \
     --dataset-path ./datasets/mnist \
     --number-of-clients 10 \
     --number-of-communication-rounds 20 \
-    --output-path ./experiments
+    --output-path ./experiments/fedavg
 ```
 
 Currently the following models and datasets are supported:
@@ -64,7 +66,34 @@ Currently the following models and datasets are supported:
 - MNIST (`--dataset mnist`)
 - CIFAR-10 (`--dataset cifar-10`)
 
-The training hyperparameters can be specified using the arguments `--learning-rate`/`-l`, `--momentum`/`-M`, `--weight-decay`/`-w`, and `--batch-size`/`-b`. Using the argument `--number-of-local-epochs`/`-e`, the number of epochs for which each client trains before sending the model updates back to the central server, can be specified. If you want the training to only run on the CPU (e.g., to better the debug the application), you can use the `--force-cpu`/`-c` flag. To use client sub-sampling, i.e., only using a subset of the total client population for each communication round, you can use the `--number-of-clients-per-communication-round`/`-N` argument. If not specified, the argument defaults to the number of clients, i.e., all clients are used for training in every communication round. Finally, it is possible to plot the training statistics (loss and accuracy) for the central server and all clients by passing a file path to the `--training-statistics-plot-output-file-path`/`p` argument. Be aware, though, that the plotting can take a long time for many clients, therefore, when using more than 250 clients, a warning is logged, and when using more than 1,000 clients, an error is raised and the application exists.
+The training hyperparameters can be specified using the arguments `--learning-rate`/`-l`, `--momentum`/`-M`, `--weight-decay`/`-w`, and `--batch-size`/`-b`. Using the argument `--number-of-local-epochs`/`-e`, the number of epochs for which each client trains before sending the model updates back to the central server, can be specified. If you want the training to only run on the CPU (e.g., to better the debug the application), you can use the `--force-cpu`/`-c` flag. To use client sub-sampling, i.e., only using a subset of the total client population for each communication round, you can use the `--number-of-clients-per-communication-round`/`-N` argument. If not specified, the argument defaults to the number of clients, i.e., all clients are used for training in every communication round.
+
+To train a model without using federated learning as a baseline, you can use the `baseline` command. You have to specified the model, the dataset, the dataset path, the number of epochs, and the output path. Again, you can specify the training hyperparameters using the arguments `--learning-rate`/`-l`, `--momentum`/`-M`, `--weight-decay`/`-w`, and `--batch-size`/`-b`. Also, you can specify the number of retained checkpoint files using the `--number-of-checkpoint-files-to-retain`/`-R` argument and force training on the CPU using the `--force-cpu`/`-c` flag.
+
+The following example will train a LeNet-5 on MNIST for 25 epochs and saves the resulting model checkpoint files, hyperparameters, and training statistics into the directory `./experiments/baseline`. The dataset is expected to be in the `./datasets/mnist` directory. Again, if it does not exist, yet, it is automatically downloaded.
+
+```bash
+python -m fl baseline \
+    --model lenet-5 \
+    --dataset mnist \
+    --dataset-path ./datasets/mnist \
+    --number-of-epochs 25 \
+    --output-path ./experiments/baseline
+```
+
+Finally, the training statistics of any experiment can be plotted using the `plot-training-statistics` command. It requires the path to the directory that contains the hyperparameters file and the training statistics files of the experiment as well as the path to the file into which the generated plot is to be saved. The following example plots the training results of the federated averaging and baseline experiments from above:
+
+```bash
+python -m fl plot-training-statistics \
+    ./experiments/fedavg \
+    ./fedavg-training-statistics.png
+
+python -m fl plot-training-statistics \
+    ./experiments/baseline \
+    ./baseline-training-statistics.png
+```
+
+For baseline experiments, the training and validation accuracy and loss is being plotted. For federated learning experiments, the validation accuracy and loss of the central server as well as the training accuracy and loss of the clients are plotted. Since federated learning experiments may have a large client population, the number of clients that are plotted is restricted. Be default, the first 100 clients are plotted. Using the `--maximum-number-of-clients-to-plot`/`-n` argument, the number of plotted clients can be configured. The `--client-sampling-method`/`-s` specifies how the clients are being sampled: when specifying `first` the first 100 clients are plotted and when specifying `random` 100 random clients are being plotted. Finally, the `--font`/`-f` argument can be used to specify whether a serif or a sans serif font will be used for rendering plots. A serif font is ideal when embedding the plot in a LaTeX document and a sans-serif font is recommended for other types of documents such as presentations. By default a serif font is used.
 
 ## Contributing
 
