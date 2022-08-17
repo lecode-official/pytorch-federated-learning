@@ -68,9 +68,9 @@ Currently the following models and datasets are supported:
 
 The training hyperparameters can be specified using the arguments `--learning-rate`/`-l`, `--momentum`/`-M`, `--weight-decay`/`-w`, and `--batch-size`/`-b`. Using the argument `--number-of-local-epochs`/`-e`, the number of epochs for which each client trains before sending the model updates back to the central server, can be specified. If you want the training to only run on the CPU (e.g., to better the debug the application), you can use the `--force-cpu`/`-c` flag. To use client sub-sampling, i.e., only using a subset of the total client population for each communication round, you can use the `--number-of-clients-per-communication-round`/`-N` argument. If not specified, the argument defaults to the number of clients, i.e., all clients are used for training in every communication round.
 
-To train a model without using federated learning as a baseline, you can use the `baseline` command. You have to specified the model, the dataset, the dataset path, the number of epochs, and the output path. Again, you can specify the training hyperparameters using the arguments `--learning-rate`/`-l`, `--momentum`/`-M`, `--weight-decay`/`-w`, and `--batch-size`/`-b`. Also, you can specify the number of retained checkpoint files using the `--number-of-checkpoint-files-to-retain`/`-R` argument and force training on the CPU using the `--force-cpu`/`-c` flag.
+To train a baseline model without using federated learning, you can use the `baseline` command. You have to specify the model, the dataset, the dataset path, the number of epochs, and the output path. Again, you can specify the training hyperparameters using the arguments `--learning-rate`/`-l`, `--momentum`/`-M`, `--weight-decay`/`-w`, and `--batch-size`/`-b`. Also, you can specify the number of retained checkpoint files using the `--number-of-checkpoint-files-to-retain`/`-R` argument and force training on the CPU using the `--force-cpu`/`-c` flag.
 
-The following example will train a LeNet-5 on MNIST for 25 epochs and saves the resulting model checkpoint files, hyperparameters, and training statistics into the directory `./experiments/baseline`. The dataset is expected to be in the `./datasets/mnist` directory. Again, if it does not exist, yet, it is automatically downloaded.
+The following example will train a LeNet-5 on MNIST for 25 epochs and saves the resulting model checkpoint files, hyperparameters, and training statistics into the `./experiments/baseline` directory. The dataset is expected to be in the `./datasets/mnist` directory. Again, if it does not exist, yet, it is automatically downloaded.
 
 ```bash
 python -m fl baseline \
@@ -93,7 +93,7 @@ python -m fl plot-training-statistics \
     ./baseline-training-statistics.png
 ```
 
-For baseline experiments, the training and validation accuracy and loss is being plotted. For federated learning experiments, the validation accuracy and loss of the central server as well as the training accuracy and loss of the clients are plotted. Since federated learning experiments may have a large client population, the number of clients that are plotted is restricted. Be default, the first 100 clients are plotted. Using the `--maximum-number-of-clients-to-plot`/`-n` argument, the number of plotted clients can be configured. The `--client-sampling-method`/`-s` specifies how the clients are being sampled: when specifying `first` the first 100 clients are plotted and when specifying `random` 100 random clients are being plotted. Finally, the `--font`/`-f` argument can be used to specify whether a serif or a sans serif font will be used for rendering plots. A serif font is ideal when embedding the plot in a LaTeX document and a sans-serif font is recommended for other types of documents such as presentations. By default a serif font is used.
+For baseline experiments, the training and validation accuracy and loss are being plotted. For federated learning experiments, the validation accuracy and loss of the central server as well as the training accuracy and loss of the clients are plotted. Since federated learning experiments may have a large client population, the number of clients that are plotted is restricted. By default, the first 100 clients are plotted. Using the `--maximum-number-of-clients-to-plot`/`-n` argument, the number of plotted clients can be configured. The `--client-sampling-method`/`-s` specifies how the clients are being sampled: when specifying `first` the first 100 clients are plotted and when specifying `random` 100 random clients are being plotted. Finally, the `--font`/`-f` argument can be used to specify whether a serif or a sans-serif font will be used for rendering plots. A serif font is ideal when embedding the plot in a LaTeX document and a sans-serif font is recommended for other types of documents such as presentations. By default a serif font is used.
 
 ## Preliminary Experiment Results
 
@@ -116,4 +116,4 @@ If you'd like to contribute, there are multiple ways you can help out. If you fi
 
 ## License
 
-The code in this project is licensed under MIT license. For more information see the [license file](LICENSE).
+The code in this project is licensed under the MIT license. For more information see the [license file](LICENSE).

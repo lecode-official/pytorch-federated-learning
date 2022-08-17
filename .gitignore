@@ -9,3 +9,6 @@ experiments
 
 # Ignores downloaded datasets
 datasets
+
+# Ignores bash scripts, which are used for batching experiments
+*.sh
