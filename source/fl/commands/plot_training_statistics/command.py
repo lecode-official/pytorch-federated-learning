@@ -69,12 +69,14 @@ class PlotTrainingStatisticsCommand(BaseCommand):
         """
 
         # Loads the training statistics of the experiment
+        self.logger.info('Loading training statistics...')
         training_statistics = pandas.read_csv(training_statistics_file_path)
         maximum_loss = max(training_statistics['training_loss'].max(), training_statistics['validation_loss'].max())
         final_loss = training_statistics['validation_loss'].iloc[-1].item()
         final_accuracy = training_statistics['validation_accuracy'].iloc[-1].item() * 100
 
         # Creates the figure
+        self.logger.info('Plotting training statistics...')
         figure = pyplot.figure(figsize=(15, 5), dpi=300)
 
         # Creates the plot for the validation loss/accuracy
@@ -142,6 +144,7 @@ class PlotTrainingStatisticsCommand(BaseCommand):
         training_accuracies_axis.legend(accuracy_handles + loss_handles, accuracy_labels + loss_labels)
 
         # Saves the generated plot
+        self.logger.info('Saving generate training statistics plot...')
         figure.tight_layout()
         figure.savefig(output_file_path)
 
@@ -171,6 +174,7 @@ class PlotTrainingStatisticsCommand(BaseCommand):
         """
 
         # Loads the training statistics of the experiment
+        self.logger.info('Loading training statistics...')
         central_server_training_statistics = pandas.read_csv(central_server_training_statistics_file_path)
         client_training_statistics = pandas.read_csv(client_training_statistics_file_path)
         final_central_server_loss = central_server_training_statistics['validation_loss'].iloc[-1].item()
@@ -210,7 +214,7 @@ class PlotTrainingStatisticsCommand(BaseCommand):
             linewidth=0.5,
             marker='.',
             markersize=8,
-            label=f'Accuracy (Final Accuracy: {final_central_server_accuracy:.2})'
+            label=f'Accuracy (Final Accuracy: {final_central_server_accuracy:.2f})'
         )
         central_server_validation_loss_axis = central_server_validation_accuracy_axis.twinx()
         central_server_validation_loss_axis.set_ylabel('Validation Loss')
@@ -222,7 +226,7 @@ class PlotTrainingStatisticsCommand(BaseCommand):
             linewidth=0.5,
             marker='.',
             markersize=8,
-            label=f'Loss (Final Loss: {final_central_server_loss:.2})'
+            label=f'Loss (Final Loss: {final_central_server_loss:.2f})'
         )
 
         # Adds the legend to the validation loss and accuracy plot
@@ -287,6 +291,7 @@ class PlotTrainingStatisticsCommand(BaseCommand):
         federated_learning_client_title_axis.set_title('Clients')
 
         # Saves the generated plot
+        self.logger.info('Saving generate training statistics plot...')
         figure.tight_layout()
         grid_specification.tight_layout(figure)
         figure.savefig(output_file_path)
