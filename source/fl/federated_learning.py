@@ -187,7 +187,6 @@ class FederatedLearningClient:
             local_training_subset: torch.utils.data.Dataset,
             sample_shape: tuple,
             number_of_classes: int,
-            learning_rate: float = 0.01,
             momentum: float = 0.9,
             weight_decay: float = 0.0005,
             batch_size: int = 128) -> None:
@@ -200,7 +199,6 @@ class FederatedLearningClient:
             local_training_subset (torch.utils.data.Dataset): The training subset of the local dataset on which the model is to be trained.
             sample_shape (tuple): The shape of the samples in the dataset.
             number_of_classes (int): The number of classes in the dataset.
-            learning_rate (float, optional): The learning rate of the optimizer. Defaults to 0.01.
             momentum (float, optional): The momentum of the optimizer. Defaults to 0.9.
             weight_decay (float, optional): The rate at which the weights are decayed during optimization. Defaults to 0.0005.
             batch_size (int, optional): The size of mini-batches that are to be used during training. Defaults to 128.
@@ -213,7 +211,6 @@ class FederatedLearningClient:
         self.local_training_subset = local_training_subset
         self.sample_shape = sample_shape
         self.number_of_classes = number_of_classes
-        self.learning_rate = learning_rate
         self.momentum = momentum
         self.weight_decay = weight_decay
         self.batch_size = batch_size
@@ -227,12 +224,19 @@ class FederatedLearningClient:
         # Initializes a flag, which is set when the training should be aborted
         self.is_aborting = False
 
-    def train(self, global_model_parameters: collections.OrderedDict, number_of_epochs: int) -> tuple[float, float, collections.OrderedDict]:
+    def train(
+            self,
+            global_model_parameters: collections.OrderedDict,
+            learning_rate: float,
+            number_of_epochs: int
+        ) -> tuple[float, float, collections.OrderedDict]:
         """Trains the local model on the local data of the client.
 
         Args:
             global_model_parameters (collections.OrderedDict): The parameters of the global model of the central server that are used to update the
                 parameters of the local model.
+            learning_rate (float): The current learning rate that is to be used. For each communication round a different learning rate can be used,
+                e.g., by decaying the learning rate.
             number_of_epochs (int): The number of epochs for which the local model is to be trained.
 
         Returns:
@@ -253,7 +257,7 @@ class FederatedLearningClient:
             self.device,
             local_model,
             self.local_training_subset,
-            self.learning_rate,
+            learning_rate,
             self.momentum,
             self.weight_decay,
             self.batch_size
@@ -293,6 +297,8 @@ class FederatedLearningCentralServer:
             central_validation_subset: torch.utils.data.Dataset,
             sample_shape: tuple,
             number_of_classes: int,
+            initial_learning_rate: float = 0.1,
+            learning_rate_decay: float = 0.95,
             batch_size: int = 128) -> None:
         """Initializes a new FederatedLearningCentralServer instance.
 
@@ -308,6 +314,9 @@ class FederatedLearningCentralServer:
             central_validation_subset (torch.utils.data.Dataset): The validation subset on which the global model is to be validated.
             sample_shape (tuple): The shape of the samples in the dataset.
             number_of_classes (int): The number of classes in the dataset.
+            initial_learning_rate (float, optional): The initial learning rate of the optimizer. Defaults to 0.1.
+            learning_rate_decay (float, optional): The learning rate is decayed exponentially during the training. This parameter is the decay rate of
+                the learning rate. A decay rate 1.0 would result in no decay at all. Defaults to 0.95.
             batch_size (int, optional): The size of the mini-batches that are to be used during the validation. Defaults to 128.
 
         Raises:
@@ -333,6 +342,9 @@ class FederatedLearningCentralServer:
         self.central_validation_subset = central_validation_subset
         self.sample_shape = sample_shape
         self.number_of_classes = number_of_classes
+        self.initial_learning_rate = initial_learning_rate
+        self.current_learning_rate = initial_learning_rate
+        self.learning_rate_decay = learning_rate_decay
         self.batch_size = batch_size
 
         # Initializes the logger
@@ -377,12 +389,18 @@ class FederatedLearningCentralServer:
 
             # Trains the client and reports the training loss and training accuracy of it
             self.logger.info('Training client %d (%d/%d)...', client.client_id, index + 1, self.number_of_clients_per_communication_round)
-            training_loss, training_accuracy, local_model_parameters = client.train(global_model_parameters, number_of_local_epochs)
+            training_loss, training_accuracy, local_model_parameters = client.train(
+                global_model_parameters,
+                self.current_learning_rate,
+                number_of_local_epochs
+            )
+            self.current_learning_rate = self.current_learning_rate * self.learning_rate_decay
             self.logger.info(
-                'Finished training client %d, Training loss: %f, training accuracy %f',
+                'Finished training client %d, Training loss: %f, training accuracy %f, learning rate: %f',
                 client.client_id,
                 training_loss,
-                training_accuracy
+                training_accuracy,
+                self.current_learning_rate
             )
 
             # Stores the training loss and training accuracy of the client

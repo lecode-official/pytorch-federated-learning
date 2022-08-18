@@ -116,6 +116,16 @@ class Trainer:
         # Returns the training loss and accuracy
         return mean_loss.compute().cpu().numpy().item(), accuracy.compute().cpu().numpy().item()
 
+    def change_learning_rate(self, new_learning_rate: float) -> None:
+        """Changes the learning rate of the optimizer.
+
+        Args:
+            new_learning_rate (float): The new learning rate that is to be used by the optimizer.
+        """
+
+        for parameter_group in self.optimizer.param_groups:
+            parameter_group['lr'] = new_learning_rate
+
     def abort_training(self) -> None:
         """Graciously aborts the training."""
 

@@ -131,7 +131,19 @@ class FederatedAveragingCommandDescriptor(BaseCommandDescriptor):
             dest='learning_rate',
             type=float,
             default=0.01,
-            help='The learning rate of the optimizer. Defaults to 0.01.'
+            help='''The initial learning rate of the optimizer. Depending on the --learning-rate-decay argument, the learning rate will be decayed
+                during the training. Defaults to 0.01.
+            '''
+        )
+        argument_parser.add_argument(
+            '-L',
+            '--learning-rate-decay',
+            dest='learning_rate_decay',
+            type=float,
+            default=0.95,
+            help='''The learning rate is decayed exponentially during the training. This argument is the decay rate of the learning rate. A decay rate
+                1.0 would result in no decay at all. Defaults to 0.95.
+            '''
         )
         argument_parser.add_argument(
             '-M',

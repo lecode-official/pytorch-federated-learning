@@ -53,6 +53,7 @@ class BaselineCommand(BaseCommand):
                 'output_path': command_line_arguments.output_path,
                 'number_of_checkpoint_files_to_retain': command_line_arguments.number_of_checkpoint_files_to_retain,
                 'learning_rate': command_line_arguments.learning_rate,
+                'learning_rate_decay': command_line_arguments.learning_rate_decay,
                 'momentum': command_line_arguments.momentum,
                 'weight_decay': command_line_arguments.weight_decay,
                 'batch_size': command_line_arguments.batch_size,
@@ -100,6 +101,7 @@ class BaselineCommand(BaseCommand):
         signal.signal(signal.SIGINT, lambda _, __: self.abort_training())
 
         # Performs the training for the specified number of epochs
+        current_learning_rate = command_line_arguments.learning_rate
         current_greatest_validation_accuracy = 0
         retained_model_checkpoint_file_paths = []
         for epoch in range(1, command_line_arguments.number_of_epochs + 1):
@@ -112,8 +114,15 @@ class BaselineCommand(BaseCommand):
             # Performs training on the model for one epoch
             self.logger.info('Starting epoch %d...', epoch)
             self.logger.info(f'Training model...')
+            self.trainer.change_learning_rate(current_learning_rate)
             training_loss, training_accuracy = self.trainer.train_for_one_epoch()
-            self.logger.info('Finished training, training loss: %f, training accuracy: %f', training_loss, training_accuracy * 100)
+            self.logger.info(
+                'Finished training, training loss: %f, training accuracy: %f, learning rate: %f',
+                training_loss,
+                training_accuracy * 100,
+                current_learning_rate
+            )
+            current_learning_rate = current_learning_rate * command_line_arguments.learning_rate_decay
 
             # Validates the updated model and reports its loss and accuracy
             self.logger.info(f'Validating model...')

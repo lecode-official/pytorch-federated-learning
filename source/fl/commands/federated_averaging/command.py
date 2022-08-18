@@ -62,6 +62,7 @@ class FederatedAveragingCommand(BaseCommand):
                 'output_path': command_line_arguments.output_path,
                 'number_of_checkpoint_files_to_retain': command_line_arguments.number_of_checkpoint_files_to_retain,
                 'learning_rate': command_line_arguments.learning_rate,
+                'learning_rate_decay': command_line_arguments.learning_rate_decay,
                 'momentum': command_line_arguments.momentum,
                 'weight_decay': command_line_arguments.weight_decay,
                 'batch_size': command_line_arguments.batch_size,
@@ -92,7 +93,6 @@ class FederatedAveragingCommand(BaseCommand):
                 client_subsets[index],
                 sample_shape,
                 number_of_classes,
-                command_line_arguments.learning_rate,
                 command_line_arguments.momentum,
                 command_line_arguments.weight_decay,
                 command_line_arguments.batch_size
@@ -108,6 +108,8 @@ class FederatedAveragingCommand(BaseCommand):
             validation_subset,
             sample_shape,
             number_of_classes,
+            command_line_arguments.learning_rate,
+            command_line_arguments.learning_rate_decay,
             command_line_arguments.batch_size
         )
 
