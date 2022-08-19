@@ -394,7 +394,6 @@ class FederatedLearningCentralServer:
                 self.current_learning_rate,
                 number_of_local_epochs
             )
-            self.current_learning_rate = self.current_learning_rate * self.learning_rate_decay
             self.logger.info(
                 'Finished training client %d, Training loss: %f, training accuracy %f, learning rate: %f',
                 client.client_id,
@@ -413,6 +412,9 @@ class FederatedLearningCentralServer:
 
         # Updates the parameters of the global model by aggregating the updated parameters of the clients using federated averaging (FedAvg)
         self.model_aggregation_strategy.update_global_model(self.global_model)
+
+        # Decays the learning rate
+        self.current_learning_rate = self.current_learning_rate * self.learning_rate_decay
 
         # Returns the training losses and training accuracies of all clients (clients that did not participate in the communication round have a loss
         # and accuracy of numpy.nan)

@@ -214,7 +214,7 @@ class FederatedAveragingCommand(BaseCommand):
         return global_model_checkpoint_file_path
 
     def abort_training(self) -> None:
-        """Graciously aborts the federated learning."""
+        """Graciously aborts the federated learning. If called a second time, the application is quit."""
 
         # If the user hits Ctrl+C a second time, then the application is closed right away
         if self.is_aborting:
