@@ -185,7 +185,7 @@ class BaselineCommand(BaseCommand):
 
         model_checkpoint_file_path = os.path.join(
             output_path,
-            f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}-{model_type}-{dataset_type}-baseline-{epoch}-epoch-{accuracy:.2f}-accuracy.pt'
+            f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}-{model_type}-{dataset_type}-baseline-epoch-{epoch}-accuracy-{accuracy:.2f}.pt'
         )
         self.logger.info('Saving model checkpoint to disk (%s)...', model_checkpoint_file_path)
         self.trainer.save_checkpoint(model_checkpoint_file_path)

@@ -206,8 +206,8 @@ class FederatedAveragingCommand(BaseCommand):
 
         global_model_checkpoint_file_path = os.path.join(
             output_path,
-            f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}-{model_type}-{dataset_type}-fedavg-{communication_round}-communication-round-'
-            f'{accuracy:.2f}-accuracy.pt'
+            f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}-{model_type}-{dataset_type}-fedavg-communication-round-{communication_round}-'
+            f'accuracy-{accuracy:.2f}.pt'
         )
         self.logger.info('Saving global model checkpoint to disk (%s)...', global_model_checkpoint_file_path)
         self.central_server.save_checkpoint(global_model_checkpoint_file_path)
