@@ -61,9 +61,16 @@ class BaselineCommand(BaseCommand):
             }, hyperparameters_file)
 
         # Selects the device the training and validation will be performed on
-        device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        if command_line_arguments.force_cpu:
-            device = 'cpu'
+        device = 'cpu'
+        device_name = 'CPU'
+        if not command_line_arguments.force_cpu:
+            if torch.cuda.is_available():
+                device = 'cuda'
+                device_name = torch.cuda.get_device_name(device)
+            elif torch.backends.mps.is_available():
+                device = 'mps'
+                device_name = 'Apple Silicon GPU (MPS)'
+        self.logger.info(f'Selected {device_name} to perform training...')
 
         # Loading the datasets
         self.logger.info('Loading dataset (%s)...', command_line_arguments.dataset_type)

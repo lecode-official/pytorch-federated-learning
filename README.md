@@ -13,30 +13,30 @@ git clone https://github.com/lecode-official/pytorch-federated-learning.git
 cd pytorch-federated-learning/source
 ```
 
-Before running the federated learning simulator, all dependencies have to be installed, which can easily be achieved using Miniconda:
+Before running the federated learning simulator, all dependencies have to be installed, which can easily be achieved using Miniconda. There are different environment files for the different operating systems and platforms. Please select an environment file that fits your operating system and platform. Currently online Linux AMD64 and MacOS ARM64 are officially supported.
 
 ```bash
-conda env create -f environment.yaml
+conda env create -f environment.<environment>.yaml
 ```
 
 To use the virtual environment it must be activated first. After using the environment it has to be deactivated:
 
 ```bash
-conda activate fad
+conda activate fl
 python -m fl <command> <arguments...>
 conda deactivate
 ```
 
-When you install new packages, please update the environment file like so:
+When you install new packages, please update the environment file. Please make sure to either create a new environment file for your operating system and platform (i.e., choose a moniker in the format "<operating-system>-<platform>", e.g., "windows-amd64"), or overwrite the one that matches your operating system and platform. Ideally, try to update all supported environments if you plan on creating a pull request. The environment file can be updated like so:
 
 ```bash
-conda env export | grep -v "prefix" > environment.yaml
+conda env export | grep -v "prefix" > environment.<environment>.yaml
 ```
 
-When someone else has added dependencies to the environment, then you can update your environment from the `environment.yaml` like so (the `--prune` switch makes sure that dependencies that have been removed from the `environment.yaml` are uninstalled):
+When someone else has added or removed dependencies from the environment, you have update your environment from the `environment.<environment>.yaml` as well. Again, please make sure to select the environment that fits your operating system and platform. The `--prune` switch makes sure that dependencies that have been removed from the `environment.<environment>.yaml` are uninstalled):
 
 ```bash
-conda env update --file environment.yaml --prune
+conda env update --file environment.<environment>.yaml --prune
 ```
 
 ## Training Models
