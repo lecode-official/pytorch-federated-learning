@@ -124,7 +124,7 @@ class BaselineCommand(BaseCommand):
             self.trainer.change_learning_rate(current_learning_rate)
             training_loss, training_accuracy = self.trainer.train_for_one_epoch()
             self.logger.info(
-                'Finished training, training loss: %f, training accuracy: %f, learning rate: %f',
+                'Finished training, training loss: %f, training accuracy: %f%%, learning rate: %f',
                 training_loss,
                 training_accuracy * 100,
                 current_learning_rate
@@ -134,7 +134,7 @@ class BaselineCommand(BaseCommand):
             # Validates the updated model and reports its loss and accuracy
             self.logger.info(f'Validating model...')
             validation_loss, validation_accuracy = validator.validate()
-            self.logger.info('Finished epoch %d, validation loss: %f, validation accuracy: %f', epoch, validation_loss, validation_accuracy * 100)
+            self.logger.info('Finished epoch %d, validation loss: %f, validation accuracy: %f%%', epoch, validation_loss, validation_accuracy * 100)
 
             # Writes the training statistics into a CSV file
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')

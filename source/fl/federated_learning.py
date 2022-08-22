@@ -395,10 +395,10 @@ class FederatedLearningCentralServer:
                 number_of_local_epochs
             )
             self.logger.info(
-                'Finished training client %d, Training loss: %f, training accuracy %f, learning rate: %f',
+                'Finished training client %d, training loss: %f, training accuracy: %f%%, learning rate: %f',
                 client.client_id,
                 training_loss,
-                training_accuracy,
+                training_accuracy * 100,
                 self.current_learning_rate
             )
 

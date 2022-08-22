@@ -144,7 +144,7 @@ class FederatedAveragingCommand(BaseCommand):
             # Validates the updated global model and reports its loss and accuracy
             central_server_validation_loss, central_server_validation_accuracy = self.central_server.validate()
             self.logger.info(
-                'Finished communication round %d, validation loss: %f, validation accuracy: %f',
+                'Finished communication round %d, validation loss: %f, validation accuracy: %f%%',
                 communication_round,
                 central_server_validation_loss,
                 central_server_validation_accuracy * 100
