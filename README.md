@@ -95,20 +95,25 @@ python -m fl plot-training-statistics \
 
 For baseline experiments, the training and validation accuracy and loss are being plotted. For federated learning experiments, the validation accuracy and loss of the central server as well as the training accuracy and loss of the clients are plotted. Since federated learning experiments may have a large client population, the number of clients that are plotted is restricted. By default, the first 100 clients are plotted. Using the `--maximum-number-of-clients-to-plot`/`-n` argument, the number of plotted clients can be configured. The `--client-sampling-method`/`-s` specifies how the clients are being sampled: when specifying `first` the first 100 clients are plotted and when specifying `random` 100 random clients are being plotted. Finally, the `--font`/`-f` argument can be used to specify whether a serif or a sans-serif font will be used for rendering plots. A serif font is ideal when embedding the plot in a LaTeX document and a sans-serif font is recommended for other types of documents such as presentations. By default a serif font is used.
 
-## Preliminary Experiment Results
+## Experiment Results
 
 ### Baseline Experiments
 
-| Model   | Dataset | Learning Rate | Momentum | Weight Decay | Batch Size | Epochs | Best Validation Accuracy |
-|---------|---------|--------------:|---------:|-------------:|-----------:|-------:|-------------------------:|
-| LeNet-5 | MNIST   | 0.01          | 0.9      | 0.0005       | 128        | 50     | 99.09% (Epoch 44)        |
+| Model   | Dataset  | Learning Rate | Learning Rate Decay | Momentum | Weight Decay | Batch Size | Epochs | Best Validation Accuracy |
+|---------|----------|--------------:|--------------------:|---------:|-------------:|-----------:|-------:|-------------------------:|
+| LeNet-5 | MNIST    | 0.01          | *None*              | 0.9      | 0.0005       | 128        | 50     | 99.36% (Epoch 50)        |
+| LeNet-5 | CIFAR-10 | 0.1           | 0.98                | 0.9      | 0.0025       | 128        | 100    | 68.88% (Epoch 92)        |
 
 ### Federated Averaging Experiments
 
-| Model   | Dataset | Samples per Client | Learning Rate | Momentum | Weight Decay | Batch Size | Clients | Communication Rounds | Clients per Communication Round | Local Epochs | Best Validation Accuracy |
-|---------|---------|-------------------:|--------------:|---------:|-------------:|-----------:|--------:|---------------------:|--------------------------------:|-------------:|-------------------------:|
-| LeNet-5 | MNIST   | 60                 | 0.01          | 0.9      | 0.0005       | 60         | 1000    | 100                  | 100                             | 5            | 93.06% (Epoch 100)       |
-| LeNet-5 | MNIST   | 600                | 0.01          | 0.9      | 0.0005       | 16         | 100     | 20                   | 50                              | 5            | 98.48% (Epoch 20)        |
+| Model   | Dataset  | Samples per Client | Learning Rate | Learning Rate Decay | Momentum | Weight Decay | Batch Size | Clients | Communication Rounds | Clients per Communication Round | Local Epochs | Best Validation Accuracy |
+|---------|----------|-------------------:|--------------:|--------------------:|---------:|-------------:|-----------:|--------:|---------------------:|--------------------------------:|-------------:|-------------------------:|
+| LeNet-5 | MNIST    | 600                | 0.01          | *None*              | 0.9      | 0.0005       | 60         | 100     | 100                  | 10                              | 5            | 98.83% (Epoch 92)        |
+| LeNet-5 | MNIST    | 60                 | 0.01          | *None*              | 0.9      | 0.0005       | 60         | 1000    | 200                  | 100                             | 5            | 96.60% (Epoch 200)       |
+| LeNet-5 | MNIST    | 6                  | 0.01          | *None*              | 0.9      | 0.0005       | 6          | 10000   | 300                  | 100                             | 5            | 95.47% (Epoch 300)       |
+| LeNet-5 | CIFAR-10 | 500                | 0.1           | 0.98                | 0.9      | 0.0025       | 60         | 100     | 100                  | 10                              | 5            | 57.56% (Epoch 93)        |
+| LeNet-5 | CIFAR-10 | 50                 | 0.1           | 0.98                | 0.9      | 0.0025       | 60         | 1000    | 200                  | 100                             | 5            | 48.17% (Epoch 197)       |
+| LeNet-5 | CIFAR-10 | 5                  | 0.1           | 0.98                | 0.9      | 0.0025       | 6          | 10000   | 300                  | 100                             | 5            | 46.26% (Epoch 299)       |
 
 ## Contributing
 
