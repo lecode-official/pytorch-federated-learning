@@ -72,12 +72,12 @@ class FederatedAveraging:
             global_model (torch.nn.Module): The global model of the federated learning central server, which is to be updated from the client models.
         """
 
-        global_model_parameters = dict(global_model.named_parameters())
+        global_model_parameters = global_model.state_dict()
         for name, parameter in self.summed_client_model_parameters.items():
             if self.parameter_aggregation_operators[name] == AggregationOperator.MEAN:
-                global_model_parameters[name].data = parameter.data.clone() / self.number_of_contributing_clients
+                global_model_parameters[name].copy_(parameter / self.number_of_contributing_clients)
             else:
-                global_model_parameters[name].data = parameter.data.clone()
+                global_model_parameters[name].copy_(parameter)
 
         self.reset()
 
