@@ -9,8 +9,8 @@ from typing import Optional, Union
 import numpy
 import torch
 
-from fl.models import create_model
 from fl.lifecycle import Trainer, Validator
+from fl.models import NormalizationLayerKind, create_model
 
 
 class AggregationOperator(Enum):
@@ -184,6 +184,7 @@ class FederatedLearningClient:
             client_id: int,
             device: Union[str, torch.device],
             local_model_type: str,
+            local_model_normalization_layer_kind: NormalizationLayerKind,
             local_training_subset: torch.utils.data.Dataset,
             sample_shape: tuple,
             number_of_classes: int,
@@ -196,6 +197,7 @@ class FederatedLearningClient:
             client_id (int): An ID, which uniquely identifies the client.
             device (Union[str, torch.device]): The device on which the local model is to be trained.
             local_model_type (str): The type of local model that is to be trained.
+            local_model_normalization_layer_kind (NormalizationLayerKind): The kind of the normalization layer that is used for the local model.
             local_training_subset (torch.utils.data.Dataset): The training subset of the local dataset on which the model is to be trained.
             sample_shape (tuple): The shape of the samples in the dataset.
             number_of_classes (int): The number of classes in the dataset.
@@ -208,6 +210,7 @@ class FederatedLearningClient:
         self.client_id = client_id
         self.device = device
         self.local_model_type = local_model_type
+        self.local_model_normalization_layer_kind = local_model_normalization_layer_kind
         self.local_training_subset = local_training_subset
         self.sample_shape = sample_shape
         self.number_of_classes = number_of_classes
@@ -245,7 +248,12 @@ class FederatedLearningClient:
         """
 
         # Creates the local model
-        local_model = create_model(self.local_model_type, input_shape=self.sample_shape, number_of_classes=self.number_of_classes)
+        local_model = create_model(
+            self.local_model_type,
+            input_shape=self.sample_shape,
+            number_of_classes=self.number_of_classes,
+            normalization_layer_kind=self.local_model_normalization_layer_kind
+        )
 
         # Copies the parameters of the global model
         local_model_parameters = local_model.state_dict()
@@ -294,6 +302,7 @@ class FederatedLearningCentralServer:
             number_of_clients_per_communication_round: Optional[int],
             device: Union[str, torch.device],
             global_model_type: str,
+            global_model_normalization_layer_kind: NormalizationLayerKind,
             central_validation_subset: torch.utils.data.Dataset,
             sample_shape: tuple,
             number_of_classes: int,
@@ -311,6 +320,7 @@ class FederatedLearningCentralServer:
                 at random in each communication round. If not specified, this defaults to the number of clients.
             device (Union[str, torch.device]): The device on which the global model of the central server is to be validated.
             global_model_type (str): The type of model that is to be used as global model for the central server.
+            global_model_normalization_layer_kind (NormalizationLayerKind): The kind of the normalization layer that is used for the global model.
             central_validation_subset (torch.utils.data.Dataset): The validation subset on which the global model is to be validated.
             sample_shape (tuple): The shape of the samples in the dataset.
             number_of_classes (int): The number of classes in the dataset.
@@ -339,6 +349,7 @@ class FederatedLearningCentralServer:
         self.number_of_clients_per_communication_round = number_of_clients_per_communication_round
         self.device = device
         self.global_model_type = global_model_type
+        self.global_model_normalization_layer_kind = global_model_normalization_layer_kind
         self.central_validation_subset = central_validation_subset
         self.sample_shape = sample_shape
         self.number_of_classes = number_of_classes
@@ -351,7 +362,12 @@ class FederatedLearningCentralServer:
         self.logger = logging.getLogger(__name__ + '.' + self.__class__.__name__)
 
         # Creates the global model and the validator for it
-        self.global_model = create_model(self.global_model_type, input_shape=self.sample_shape, number_of_classes=self.number_of_classes)
+        self.global_model = create_model(
+            self.global_model_type,
+            input_shape=self.sample_shape,
+            number_of_classes=self.number_of_classes,
+            normalization_layer_kind=self.global_model_normalization_layer_kind
+        )
         self.validator = Validator(self.device, self.global_model, self.central_validation_subset, self.batch_size)
 
         # Initializes the federated averaging algorithm

@@ -10,10 +10,10 @@ from argparse import Namespace
 import yaml
 import torch
 
-from fl.models import create_model
 from fl.datasets import create_dataset
 from fl.commands.base import BaseCommand
 from fl.lifecycle import Trainer, Validator
+from fl.models import NormalizationLayerKind, create_model, get_minimum_input_size
 
 
 class BaselineCommand(BaseCommand):
@@ -74,14 +74,17 @@ class BaselineCommand(BaseCommand):
 
         # Loading the datasets
         self.logger.info('Loading dataset (%s)...', command_line_arguments.dataset_type)
+        minimum_sample_shape = get_minimum_input_size(command_line_arguments.model_type)
         training_subset, validation_subset, sample_shape, number_of_classes = create_dataset(
             command_line_arguments.dataset_type,
-            command_line_arguments.dataset_path
+            command_line_arguments.dataset_path,
+            minimum_sample_shape
         )
 
         # Creates the model
         self.logger.info('Creating model...')
-        model = create_model(command_line_arguments.model_type, sample_shape, number_of_classes)
+        normalization_layer_kind = NormalizationLayerKind(command_line_arguments.normalization_layer_kind)
+        model = create_model(command_line_arguments.model_type, sample_shape, number_of_classes, normalization_layer_kind)
 
         # Creates the trainer
         self.logger.info('Creating trainer...')

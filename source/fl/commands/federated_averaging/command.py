@@ -11,6 +11,7 @@ import yaml
 import torch
 
 from fl.commands.base import BaseCommand
+from fl.models import get_minimum_input_size
 from fl.datasets import create_dataset, split_dataset
 from fl.federated_learning import FederatedLearningCentralServer, FederatedLearningClient
 
@@ -83,9 +84,11 @@ class FederatedAveragingCommand(BaseCommand):
 
         # Loading the datasets
         self.logger.info('Loading dataset (%s)...', command_line_arguments.dataset_type)
+        minimum_sample_shape = get_minimum_input_size(command_line_arguments.model_type)
         training_subset, validation_subset, sample_shape, number_of_classes = create_dataset(
             command_line_arguments.dataset_type,
-            command_line_arguments.dataset_path
+            command_line_arguments.dataset_path,
+            minimum_sample_shape
         )
         client_subsets = split_dataset(training_subset, command_line_arguments.number_of_clients)
 

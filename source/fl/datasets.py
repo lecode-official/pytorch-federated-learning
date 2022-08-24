@@ -8,56 +8,77 @@ AVAILABLE_DATASETS = ['mnist', 'cifar-10']
 DEFAULT_DATASET = 'mnist'
 
 
-def load_cifar_10(path: str) -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset]:
+def load_cifar_10(
+        path: str,
+        minimum_sample_size: tuple[int, int]
+    ) -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset, tuple[int, int, int], int]:
     """Loads the training and validation subsets of the CIFAR-10 dataset.
 
     Args:
         path (str): The path to the directory that contains the CIFAR-10 dataset. If the dataset does not exists at that location, then it is
             downloaded automatically.
+        minimum_sample_size (tuple[int, int]): The minimum height and minimum width of the samples. If required, the size of the samples is adapted.
 
     Returns:
         tuple[torch.utils.data.Dataset, torch.utils.data.Dataset]: Returns a tuple containing the training and the validation subsets of the CIFAR-10
-            dataset.
+            dataset, as well as the shape of its samples, and the number of classes.
     """
 
-    transform = torchvision.transforms.Compose([
-        torchvision.transforms.ToTensor(),
-        torchvision.transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2470, 0.2435, 0.2616])
-    ])
-    training_subset = torchvision.datasets.CIFAR10(root=path, train=True, download=True, transform=transform)
-    validation_subset = torchvision.datasets.CIFAR10(root=path, train=False, download=True, transform=transform)
+    transforms = []
+    sample_size = (32, 32)
+    if sample_size[0] < minimum_sample_size[0] or sample_size[1] < minimum_sample_size[1]:
+        sample_size = (max(sample_size[0], minimum_sample_size[0]), max(sample_size[1], minimum_sample_size[1]))
+        transforms.append(torchvision.transforms.Resize(sample_size))
+    transforms.append(torchvision.transforms.ToTensor())
+    transforms.append(torchvision.transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2470, 0.2435, 0.2616]))
 
-    return training_subset, validation_subset
+    training_subset = torchvision.datasets.CIFAR10(root=path, train=True, download=True, transform=torchvision.transforms.Compose(transforms))
+    validation_subset = torchvision.datasets.CIFAR10(root=path, train=False, download=True, transform=torchvision.transforms.Compose(transforms))
+
+    return training_subset, validation_subset, (3, sample_size[0], sample_size[1]), 10
 
 
-def load_mnist(path: str) -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset]:
+def load_mnist(
+        path: str,
+        minimum_sample_size: tuple[int, int]
+    ) -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset, tuple[int, int, int], int]:
     """Loads the training and validation subsets of the MNIST dataset.
 
     Args:
         path (str): The path to the directory that contains the MNIST dataset. If the dataset does not exists at that location, then it is downloaded
             automatically.
+        minimum_sample_size (tuple[int, int]): The minimum height and minimum width of the samples. If required, the size of the samples is adapted.
 
     Returns:
         tuple[torch.utils.data.Dataset, torch.utils.data.Dataset]: Returns a tuple containing the training and the validation subsets of the MNIST
-            dataset.
+            dataset, as well as the shape of its samples, and the number of classes.
     """
 
-    transform = torchvision.transforms.Compose([
-        torchvision.transforms.ToTensor(),
-        torchvision.transforms.Normalize(mean=[0.1307], std=[0.3081])
-    ])
-    training_subset = torchvision.datasets.MNIST(root=path, train=True, download=True, transform=transform)
-    validation_subset = torchvision.datasets.MNIST(root=path, train=False, download=True, transform=transform)
+    transforms = []
+    sample_size = (28, 28)
+    if sample_size[0] < minimum_sample_size[0] or sample_size[1] < minimum_sample_size[1]:
+        sample_size = (max(sample_size[0], minimum_sample_size[0]), max(sample_size[1], minimum_sample_size[1]))
+        transforms.append(torchvision.transforms.Resize(sample_size))
+    transforms.append(torchvision.transforms.ToTensor())
+    transforms.append(torchvision.transforms.Normalize(mean=[0.1307], std=[0.3081]))
 
-    return training_subset, validation_subset
+    training_subset = torchvision.datasets.MNIST(root=path, train=True, download=True, transform=torchvision.transforms.Compose(transforms))
+    validation_subset = torchvision.datasets.MNIST(root=path, train=False, download=True, transform=torchvision.transforms.Compose(transforms))
+
+    return training_subset, validation_subset, (1, sample_size[0], sample_size[1]), 10
 
 
-def create_dataset(dataset_type: str, path: str) -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset, tuple, int]:
+def create_dataset(
+        dataset_type: str,
+        path: str,
+        minimum_sample_size: tuple[int, int]
+    ) -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset, tuple[int, int, int], int]:
     """Creates the specified dataset.
 
     Args:
         dataset_type (str): The type of dataset that is to be created.
         path (str): The path to the directory that contains the dataset. If the dataset does not exist, it is automatically downloaded.
+        minimum_sample_size (tuple[int, int]): The minimum height and minimum width of the samples. If required, the size of the samples is adapted.
 
     Raises:
         ValueError:
@@ -72,12 +93,10 @@ def create_dataset(dataset_type: str, path: str) -> tuple[torch.utils.data.Datas
         raise ValueError('No dataset path was specified.')
 
     if dataset_type == 'cifar-10':
-        training_subset, validation_subset = load_cifar_10(path)
-        return training_subset, validation_subset, (3, 32, 32), 10
+        return load_cifar_10(path, minimum_sample_size)
 
     if dataset_type == 'mnist':
-        training_subset, validation_subset = load_mnist(path)
-        return training_subset, validation_subset, (1, 28, 28), 10
+        return load_mnist(path, minimum_sample_size)
 
     raise ValueError(f'The dataset type "{dataset_type}" is not supported.')
 

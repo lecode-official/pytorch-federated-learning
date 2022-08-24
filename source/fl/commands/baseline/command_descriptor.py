@@ -45,6 +45,21 @@ class BaselineCommandDescriptor(BaseCommandDescriptor):
             help=f'The model that is to be used for the training. Defaults to "{fl.models.DEFAULT_MODEL}".'
         )
         argument_parser.add_argument(
+            '-n',
+            '--normalization-layer-kind',
+            dest='normalization_layer_kind',
+            choices=['group-normalization', 'batch-normalization'],
+            default='batch-normalization',
+            help='''The kind of normalization layer that is to be used in the model (only supported for the some of the available model types). It is
+                a known fact, that batch normalization highly depends on dataset statistics and therefore, generally, does not work in federated
+                learning, because averaging the batch normalization layer parameters results in worse performance. Group normalization does not suffer
+                from this problem, but generally has a lower performance than batch normalization in non-federated learning scenarios. When the client
+                datasets are i.i.d. it is generally still possible to use batch normalization, but when the client datasets are highly non-i.i.d. it
+                is advised to use group normalization. If the model was trained using group normalization, then this parameter should be set to
+                "group-normalization", otherwise to "batch-normalization". Defaults to "batch-normalization".
+            '''
+        )
+        argument_parser.add_argument(
             '-d',
             '--dataset',
             dest='dataset_type',
