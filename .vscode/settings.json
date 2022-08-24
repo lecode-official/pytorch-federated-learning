@@ -42,6 +42,7 @@
         "mnist",
         "nanmax",
         "ncols",
+        "nesterov",
         "nrows",
         "optim",
         "psutil",

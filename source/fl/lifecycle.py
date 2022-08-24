@@ -69,7 +69,8 @@ class Trainer:
             self.model.parameters(),
             lr=self.learning_rate,
             momentum=self.momentum,
-            weight_decay=self.weight_decay
+            weight_decay=self.weight_decay,
+            nesterov=True
         )
 
     def train_for_one_epoch(self) -> tuple[float, float]:
