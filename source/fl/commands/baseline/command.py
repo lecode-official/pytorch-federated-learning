@@ -47,6 +47,7 @@ class BaselineCommand(BaseCommand):
             yaml.dump({
                 'method': 'baseline',
                 'model': command_line_arguments.model_type,
+                'normalization_layer_kind': command_line_arguments.normalization_layer_kind,
                 'dataset': command_line_arguments.dataset_type,
                 'dataset_path': command_line_arguments.dataset_path,
                 'number_of_epochs': command_line_arguments.number_of_epochs,

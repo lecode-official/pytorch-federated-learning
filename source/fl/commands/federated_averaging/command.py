@@ -56,6 +56,7 @@ class FederatedAveragingCommand(BaseCommand):
                 'number_of_clients_per_communication_round': \
                     command_line_arguments.number_of_clients_per_communication_round or command_line_arguments.number_of_clients,
                 'model': command_line_arguments.model_type,
+                'normalization_layer_kind': command_line_arguments.normalization_layer_kind,
                 'dataset': command_line_arguments.dataset_type,
                 'dataset_path': command_line_arguments.dataset_path,
                 'number_of_communication_rounds': command_line_arguments.number_of_communication_rounds,
