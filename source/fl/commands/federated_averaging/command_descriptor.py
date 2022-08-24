@@ -66,7 +66,7 @@ class FederatedAveragingCommandDescriptor(BaseCommandDescriptor):
             help=f'The model that is to be used for the training. Defaults to "{fl.models.DEFAULT_MODEL}".'
         )
         argument_parser.add_argument(
-            '-n',
+            '-s',
             '--normalization-layer-kind',
             dest='normalization_layer_kind',
             choices=['group-normalization', 'batch-normalization'],
