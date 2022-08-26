@@ -97,16 +97,20 @@ For baseline experiments, the training and validation accuracy and loss are bein
 
 ## Experiment Results
 
+In this section experiment results on all supported models, datasets, and algorithms is reported. In order to have a comparative baseline, all models were trained on all datasets using regular non-federated learning. These experiments are not designed to reach state-of-the-art results and use no "fancy" techniques like data augmentation, complex learning rate schedules, or elaborate hyperparameter tuning. Instead they are designed to be as simple as possible, so that the merits of the algorithms and the impact of the number of clients can be properly gauged without having to discount the effects or auxillary techniques. But in turn, this also means that some of the reported accuracies are well below what can be reached and has been reported in the literature. Nevertheless, each experiment has been performed multiple times and the best performance out of these tries has been documented here. The experiments can be re-created using the provided [script](source/experiments.sh).
+
+Some of the models used in the experiments use BatchNorm. It is a well-known fact that BatchNorm layers do not work well in a federated learning context, as they learn the statistics of the local data-generating distribution, which can differ wildly between clients in non-i.i.d. settings. Although some papers prescribe different schemes, e.g., keeping the BatchNorm statistics local instead of averaging them, the experiments documented here, simply average the BatchNorm statistics. GroupNorm, an alternative normalization technique, has been shown to work better in non-i.i.d. settings. Therefore, all models that use normalization layers, a trained using both BatchNorm and GroupNorm, to show the differences between the two.
+
 ### Baseline Experiments
 
-| Model   | Normalization | Dataset  | Learning Rate | Learning Rate Decay | Momentum | Weight Decay | Batch Size | Epochs | Best Validation Accuracy |
-|---------|---------------|----------|--------------:|--------------------:|---------:|-------------:|-----------:|-------:|-------------------------:|
-| LeNet-5 | n/a           | MNIST    | 0.01          | *None*              | 0.9      | 0.0005       | 128        | 50     | 99.36% (Epoch 50)        |
-| LeNet-5 | n/a           | CIFAR-10 | 0.1           | 0.98                | 0.9      | 0.0025       | 128        | 100    | 69.20% (Epoch 98)        |
-| VGG11   | BatchNorm     | MNIST    | 0.01          | 0.98                | 0.9      | 0.0005       | 128        | 50     | 99.65% (Epoch 45)        |
-| VGG11   | GroupNorm     | MNIST    | 0.01          | 0.98                | 0.9      | 0.0005       | 128        | 50     | 99.63% (Epoch 32)        |
-| VGG11   | BatchNorm     | CIFAR-10 | 0.01          | 0.98                | 0.9      | 0.0005       | 128        | 50     | 85.79% (Epoch 44)        |
-| VGG11   | GroupNorm     | CIFAR-10 | 0.01          | 0.98                | 0.9      | 0.0005       | 128        | 50     | 84.48% (Epoch 46)        |
+| Model   | Normalization  | Dataset  | Learning Rate | Learning Rate Decay | Momentum | Weight Decay | Batch Size | Epochs | Best Validation Accuracy |
+|---------|----------------|----------|--------------:|--------------------:|---------:|-------------:|-----------:|-------:|-------------------------:|
+| LeNet-5 | n/a            | MNIST    | 0.01          | *None*              | 0.9      | 0.0005       | 128        | 50     | 99.36% (Epoch 50)        |
+| LeNet-5 | n/a            | CIFAR-10 | 0.1           | 0.98                | 0.9      | 0.0025       | 128        | 100    | 69.20% (Epoch 98)        |
+| VGG11   | BatchNorm      | MNIST    | 0.01          | 0.98                | 0.9      | 0.0005       | 128        | 50     | 99.65% (Epoch 45)        |
+| VGG11   | GroupNorm (32) | MNIST    | 0.01          | 0.98                | 0.9      | 0.0005       | 128        | 50     | 99.63% (Epoch 32)        |
+| VGG11   | BatchNorm      | CIFAR-10 | 0.01          | 0.98                | 0.9      | 0.0005       | 128        | 50     | 85.79% (Epoch 44)        |
+| VGG11   | GroupNorm (32) | CIFAR-10 | 0.01          | 0.98                | 0.9      | 0.0005       | 128        | 50     | 84.48% (Epoch 46)        |
 
 ### Federated Averaging Experiments
 
