@@ -140,11 +140,11 @@ The code in this project is licensed under the MIT license. For more information
 
 <a id="3">**[3]**</a> Jakub Konečný, H. Brendan McMahan, Daniel Ramage, and Peter Richtárik. "Federated Optimization: Distributed Machine Learning for On-Device Intelligence". In: *CoRR* abs/1610.02527 (2016). arXiv: 1610.02527. URL: http://arxiv.org/abs/1610.02527.
 
-<a id="4">**[4]**</a> Alex Krizhevsky, Vinod Nair, and Geoffrey Hinton. "The CIFAR-10 Dataset". In: (2014). URL: http://www.cs.toronto.edu/~kriz/cifar.html.
+<a id="4">**[4]**</a> Alex Krizhevsky, Vinod Nair, and Geoffrey Hinton. "The CIFAR-10 Dataset". 2014. URL: http://www.cs.toronto.edu/~kriz/cifar.html.
 
 <a id="5">**[5]**</a> Y. Lecun, L. Bottou, Y. Bengio, and P. Haffner. "Gradient-based learning applied to document recognition". In: *Proceedings of the IEEE 86.11* (1998), pp. 2278–2324. DOI: 10.1109/5.726791.
 
-<a id="6">**[6]**</a> Yann LeCun and Corinna Cortes. "MNIST handwritten digit database". In: (2010). URL: http://yann.lecun.com/exdb/mnist/.
+<a id="6">**[6]**</a> Yann LeCun and Corinna Cortes. "MNIST handwritten digit database". 2010. URL: http://yann.lecun.com/exdb/mnist/.
 
 <a id="7">**[7]**</a> Xiaoxiao Li, Meirui Jiang, Xiaofei Zhang, Michael Kamp, and Qi Dou. "FedBN: Federated Learning on Non-IID Features via Local Batch Normalization". In: *arXiv e-prints*, arXiv:2102.07623 (Feb. 2021). arXiv: 2102. 07623 [cs.LG].
 
