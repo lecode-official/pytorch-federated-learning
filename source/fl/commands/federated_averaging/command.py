@@ -11,8 +11,8 @@ import yaml
 import torch
 
 from fl.commands.base import BaseCommand
-from fl.models import get_minimum_input_size
 from fl.datasets import create_dataset, split_dataset
+from fl.models import NormalizationLayerKind, get_minimum_input_size
 from fl.federated_learning import FederatedLearningCentralServer, FederatedLearningClient
 
 
@@ -96,11 +96,13 @@ class FederatedAveragingCommand(BaseCommand):
         # Creates the clients
         clients = []
         self.logger.info('Creating %d clients...', command_line_arguments.number_of_clients)
+        normalization_layer_kind = NormalizationLayerKind(command_line_arguments.normalization_layer_kind)
         for index in range(command_line_arguments.number_of_clients):
             clients.append(FederatedLearningClient(
                 index + 1,
                 device,
                 command_line_arguments.model_type,
+                normalization_layer_kind,
                 client_subsets[index],
                 sample_shape,
                 number_of_classes,
@@ -116,6 +118,7 @@ class FederatedAveragingCommand(BaseCommand):
             command_line_arguments.number_of_clients_per_communication_round,
             device,
             command_line_arguments.model_type,
+            normalization_layer_kind,
             validation_subset,
             sample_shape,
             number_of_classes,
