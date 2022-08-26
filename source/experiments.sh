@@ -73,7 +73,7 @@ python -m fl baseline \
     --dataset-path $DATASETS_PATH/cifar-10 \
     --number-of-epochs 50 \
     --learning-rate-decay 0.98 \
-    --output-path $OUTPUT_PATH/$(date +"%Y-%m-%d-%H-%M-%S")-baseline-vgg11-batch-normalization-mnist
+    --output-path $OUTPUT_PATH/$(date +"%Y-%m-%d-%H-%M-%S")-baseline-vgg11-batch-normalization-cifar-10
 python -m fl baseline \
     --model vgg11 \
     --normalization-layer-kind group-normalization \
@@ -81,7 +81,7 @@ python -m fl baseline \
     --dataset-path $DATASETS_PATH/cifar-10 \
     --number-of-epochs 50 \
     --learning-rate-decay 0.98 \
-    --output-path $OUTPUT_PATH/$(date +"%Y-%m-%d-%H-%M-%S")-baseline-vgg11-group-normalization-mnist
+    --output-path $OUTPUT_PATH/$(date +"%Y-%m-%d-%H-%M-%S")-baseline-vgg11-group-normalization-cifar-10
 
 # Federated averaging experiments for LeNet-5 trained on MNIST
 python -m fl federated-averaging \
