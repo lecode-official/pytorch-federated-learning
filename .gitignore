@@ -10,3 +10,17 @@ experiments-*
 
 # Ignores downloaded datasets
 datasets
+
+# Ignores LaTeX files
+*.tex
+*.bib
+*.pdf
+*.synctex*
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.run.xml
