@@ -134,26 +134,41 @@ The code in this project is licensed under the MIT license. For more information
 
 ## References
 
-<a id="1">[1]</a> Mathieu Andreux, Jean Ogier du Terrail, Constance Beguier, and Eric W. Tramel. "Siloed Federated Learning for Multi-centric Histopathology Datasets". In: *Domain Adaptation and Representation Transfer, and Distributed and Collaborative Learning*. Ed. by Shadi Albarqouni, Spyridon Bakas, Konstantinos Kamnitsas, M. Jorge Cardoso, Bennett Landman, Wenqi Li, Fausto Milletari, Nicola Rieke, Holger Roth, Daguang Xu, and Ziyue Xu. Cham: Springer International Publishing, 2020, pp. 129–139. ISBN: 978-3-030-60548-3.
+<a id="1">**[1]**</a> Mathieu Andreux, Jean Ogier du Terrail, Constance Beguier, and Eric W. Tramel. "Siloed Federated Learning for Multi-centric Histopathology Datasets". In: *Domain Adaptation and Representation Transfer, and Distributed and Collaborative Learning*. Ed. by Shadi Albarqouni, Spyridon Bakas, Konstantinos Kamnitsas, M. Jorge Cardoso, Bennett Landman, Wenqi Li, Fausto Milletari, Nicola Rieke, Holger Roth, Daguang Xu, and Ziyue Xu. Cham: Springer International Publishing, 2020, pp. 129–139. ISBN: 978-3-030-60548-3.
 
-<a id="2">[2]</a> Sergey Ioffe and Christian Szegedy. "Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift". In: *Proceedings of the 32nd International Conference on International Conference on Machine Learning - Volume 37*. ICML'15. Lille, France: JMLR.org, 2015, pp. 448–456.
+<a id="2">**[2]**</a> Sergey Ioffe and Christian Szegedy. "Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift". In: *Proceedings of the 32nd International Conference on International Conference on Machine Learning - Volume 37*. ICML'15. Lille, France: JMLR.org, 2015, pp. 448–456.
 
-<a id="3">[3]</a> Jakub Konečný, H. Brendan McMahan, Daniel Ramage, and Peter Richtárik. "Federated Optimization: Distributed Machine Learning for On-Device Intelligence". In: *CoRR* abs/1610.02527 (2016). arXiv: 1610.02527. URL: http://arxiv.org/abs/1610.02527.
+<a id="3">**[3]**</a> Jakub Konečný, H. Brendan McMahan, Daniel Ramage, and Peter Richtárik. "Federated Optimization: Distributed Machine Learning for On-Device Intelligence". In: *CoRR* abs/1610.02527 (2016). arXiv: 1610.02527. URL: http://arxiv.org/abs/1610.02527.
 
-<a id="4">[4]</a> Alex Krizhevsky, Vinod Nair, and Geoffrey Hinton. "The CIFAR-10 Dataset". In: (2014). URL: http://www.cs.toronto.edu/~kriz/cifar.html.
+<a id="4">**[4]**</a> Alex Krizhevsky, Vinod Nair, and Geoffrey Hinton. "The CIFAR-10 Dataset". In: (2014). URL: http://www.cs.toronto.edu/~kriz/cifar.html.
 
-<a id="5">[5]</a> Y. Lecun, L. Bottou, Y. Bengio, and P. Haffner. "Gradient-based learning applied to document recognition". In: *Proceedings of the IEEE 86.11* (1998), pp. 2278–2324. DOI: 10.1109/5.726791.
+<a id="5">**[5]**</a> Y. Lecun, L. Bottou, Y. Bengio, and P. Haffner. "Gradient-based learning applied to document recognition". In: *Proceedings of the IEEE 86.11* (1998), pp. 2278–2324. DOI: 10.1109/5.726791.
 
-<a id="6">[6]</a> Yann LeCun and Corinna Cortes. "MNIST handwritten digit database". In: (2010). URL: http://yann.lecun.com/exdb/mnist/.
+<a id="6">**[6]**</a> Yann LeCun and Corinna Cortes. "MNIST handwritten digit database". In: (2010). URL: http://yann.lecun.com/exdb/mnist/.
 
-<a id="7">[7]</a> Xiaoxiao Li, Meirui Jiang, Xiaofei Zhang, Michael Kamp, and Qi Dou. "FedBN: Federated Learning on Non-IID Features via Local Batch Normalization". In: *arXiv e-prints*, arXiv:2102.07623 (Feb. 2021). arXiv: 2102. 07623 [cs.LG].
+<a id="7">**[7]**</a> Xiaoxiao Li, Meirui Jiang, Xiaofei Zhang, Michael Kamp, and Qi Dou. "FedBN: Federated Learning on Non-IID Features via Local Batch Normalization". In: *arXiv e-prints*, arXiv:2102.07623 (Feb. 2021). arXiv: 2102. 07623 [cs.LG].
 
-<a id="8">[8]</a> Ekdeep Singh Lubana, Robert P. Dick, and Hidenori Tanaka. "Beyond BatchNorm: Towards a Unified Understanding of Normalization in Deep Learning". In: *Advances in Neural Information Processing Systems 34: Annual Conference on Neural Information Processing Systems 2021, NeurIPS 2021, December 6-14, 2021, virtual*. Ed. by Marc’Aurelio Ranzato, Alina Beygelzimer, Yann N. Dauphin, Percy Liang, and Jennifer Wortman Vaughan. 2021, pp. 4778–4791. URL: https://proceedings.neurips.cc/paper/2021/hash/2578eb9cdf020730f77793e8b58e165a-Abstract.html.
+<a id="8">**[8]**</a> Ekdeep Singh Lubana, Robert P. Dick, and Hidenori Tanaka. "Beyond BatchNorm: Towards a Unified Understanding of Normalization in Deep Learning". In: *Advances in Neural Information Processing Systems 34: Annual Conference on Neural Information Processing Systems 2021, NeurIPS 2021, December 6-14, 2021, virtual*. Ed. by Marc’Aurelio Ranzato, Alina Beygelzimer, Yann N. Dauphin, Percy Liang, and Jennifer Wortman Vaughan. 2021, pp. 4778–4791. URL: https://proceedings.neurips.cc/paper/2021/hash/2578eb9cdf020730f77793e8b58e165a-Abstract.html.
 
-<a id="9">[9]</a> Brendan McMahan, Eider Moore, Daniel Ramage, Seth Hampson, and Blaise Aguera y Arcas. "Communication-Efficient Learning of Deep Networks from Decentralized Data". In: *Proceedings of the 20th International Conference on Artificial Intelligence and Statistics*. Ed. by Aarti Singh and Jerry Zhu. Vol. 54. Proceedings of Machine Learning Research. PMLR, Apr. 2017, pp. 1273–1282. URL: https://proceedings.mlr.press/v54/mcmahan17a.html.
+<a id="9">**[9]**</a> Brendan McMahan, Eider Moore, Daniel Ramage, Seth Hampson, and Blaise Aguera y Arcas. "Communication-Efficient Learning of Deep Networks from Decentralized Data". In: *Proceedings of the 20th International Conference on Artificial Intelligence and Statistics*. Ed. by Aarti Singh and Jerry Zhu. Vol. 54. Proceedings of Machine Learning Research. PMLR, Apr. 2017, pp. 1273–1282. URL: https://proceedings.mlr.press/v54/mcmahan17a.html.
 
-<a id="10">[10]</a> Adam Paszke, Sam Gross, Francisco Massa, Adam Lerer, James Bradbury, Gregory Chanan, Trevor Killeen, Zeming Lin, Natalia Gimelshein, Luca Antiga, Alban Desmaison, Andreas Kopf, Edward Yang, Zachary DeVito, Martin Raison, Alykhan Tejani, Sasank Chilamkurthy, Benoit Steiner, Lu Fang, Junjie Bai, and Soumith Chintala. "PyTorch: An Imperative Style, High-Performance Deep Learning Library". In: *Advances in Neural Information Processing Systems 32*. Ed. by H. Wallach, H. Larochelle, A. Beygelzimer, F. d'Alch é-Buc, E. Fox, and R. Garnett. Curran Associates, Inc., 2019, pp. 8024–8035. URL: http://papers.neurips.cc/paper/9015-pytorch-an-imperative-style-high-performance-deep-learning-library.pdf.
+<a id="10">**[10]**</a> Adam Paszke, Sam Gross, Francisco Massa, Adam Lerer, James Bradbury, Gregory Chanan, Trevor Killeen, Zeming Lin, Natalia Gimelshein, Luca Antiga, Alban Desmaison, Andreas Kopf, Edward Yang, Zachary DeVito, Martin Raison, Alykhan Tejani, Sasank Chilamkurthy, Benoit Steiner, Lu Fang, Junjie Bai, and Soumith Chintala. "PyTorch: An Imperative Style, High-Performance Deep Learning Library". In: *Advances in Neural Information Processing Systems 32*. Ed. by H. Wallach, H. Larochelle, A. Beygelzimer, F. d'Alch é-Buc, E. Fox, and R. Garnett. Curran Associates, Inc., 2019, pp. 8024–8035. URL: http://papers.neurips.cc/paper/9015-pytorch-an-imperative-style-high-performance-deep-learning-library.pdf.
 
-<a id="11">[11]</a> Karen Simonyan and Andrew Zisserman. "Very Deep Convolutional Networks for Large-Scale Image Recognition". In: *arXiv e-prints* (Sept. 2014). arXiv: 1409.1556 [cs.CV].
+<a id="11">**[11]**</a> Karen Simonyan and Andrew Zisserman. "Very Deep Convolutional Networks for Large-Scale Image Recognition". In: *arXiv e-prints* (Sept. 2014). arXiv: 1409.1556 [cs.CV].
 
-<a id="12">[12]</a> Yuxin Wu and Kaiming He. "Group Normalization". In: *International Journal of Computer Vision* 128.3 (Mar. 2020), pp. 742–755. ISSN: 1573-1405. DOI: 10.1007/s11263-019-01198-w. URL: https://doi.org/10.1007/s11263-019-01198-w.
+<a id="12">**[12]**</a> Yuxin Wu and Kaiming He. "Group Normalization". In: *International Journal of Computer Vision* 128.3 (Mar. 2020), pp. 742–755. ISSN: 1573-1405. DOI: 10.1007/s11263-019-01198-w. URL: https://doi.org/10.1007/s11263-019-01198-w.
+
+## Cite this Repository
+
+If you use this software in your research, please cite it like this or use the "Cite this repository" widget in the about section.
+
+```bibtex
+@software{Neumann_PyTorch_Federated_Learning_2022,
+    author = {Neumann, David},
+    month = {8},
+    title = {{PyTorch Federated Learning}},
+    url = {https://github.com/lecode-official/pytorch-federated-learning},
+    version = {0.1.0},
+    year = {2022}
+}
+```
