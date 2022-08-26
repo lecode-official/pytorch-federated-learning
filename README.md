@@ -99,21 +99,25 @@ For baseline experiments, the training and validation accuracy and loss are bein
 
 ### Baseline Experiments
 
-| Model   | Dataset  | Learning Rate | Learning Rate Decay | Momentum | Weight Decay | Batch Size | Epochs | Best Validation Accuracy |
-|---------|----------|--------------:|--------------------:|---------:|-------------:|-----------:|-------:|-------------------------:|
-| LeNet-5 | MNIST    | 0.01          | *None*              | 0.9      | 0.0005       | 128        | 50     | 99.36% (Epoch 50)        |
-| LeNet-5 | CIFAR-10 | 0.1           | 0.98                | 0.9      | 0.0025       | 128        | 100    | 68.88% (Epoch 92)        |
+| Model   | Normalization | Dataset  | Learning Rate | Learning Rate Decay | Momentum | Weight Decay | Batch Size | Epochs | Best Validation Accuracy |
+|---------|---------------|----------|--------------:|--------------------:|---------:|-------------:|-----------:|-------:|-------------------------:|
+| LeNet-5 | n/a           | MNIST    | 0.01          | *None*              | 0.9      | 0.0005       | 128        | 50     | 99.36% (Epoch 50)        |
+| LeNet-5 | n/a           | CIFAR-10 | 0.1           | 0.98                | 0.9      | 0.0025       | 128        | 100    | 69.20% (Epoch 98)        |
+| VGG11   | BatchNorm     | MNIST    | 0.01          | 0.98                | 0.9      | 0.0005       | 128        | 50     | 99.65% (Epoch 45)        |
+| VGG11   | GroupNorm     | MNIST    | 0.01          | 0.98                | 0.9      | 0.0005       | 128        | 50     | 99.63% (Epoch 32)        |
+| VGG11   | BatchNorm     | CIFAR-10 | 0.01          | 0.98                | 0.9      | 0.0005       | 128        | 50     | 85.79% (Epoch 44)        |
+| VGG11   | GroupNorm     | CIFAR-10 | 0.01          | 0.98                | 0.9      | 0.0005       | 128        | 50     | 84.48% (Epoch 46)        |
 
 ### Federated Averaging Experiments
 
-| Model   | Dataset  | Samples per Client | Learning Rate | Learning Rate Decay | Momentum | Weight Decay | Batch Size | Clients | Communication Rounds | Clients per Communication Round | Local Epochs | Best Validation Accuracy |
-|---------|----------|-------------------:|--------------:|--------------------:|---------:|-------------:|-----------:|--------:|---------------------:|--------------------------------:|-------------:|-------------------------:|
-| LeNet-5 | MNIST    | 600                | 0.01          | *None*              | 0.9      | 0.0005       | 60         | 100     | 100                  | 10                              | 5            | 98.83% (Epoch 92)        |
-| LeNet-5 | MNIST    | 60                 | 0.01          | *None*              | 0.9      | 0.0005       | 60         | 1000    | 200                  | 100                             | 5            | 96.60% (Epoch 200)       |
-| LeNet-5 | MNIST    | 6                  | 0.01          | *None*              | 0.9      | 0.0005       | 6          | 10000   | 300                  | 100                             | 5            | 95.47% (Epoch 300)       |
-| LeNet-5 | CIFAR-10 | 500                | 0.1           | 0.98                | 0.9      | 0.0025       | 60         | 100     | 100                  | 10                              | 5            | 57.56% (Epoch 93)        |
-| LeNet-5 | CIFAR-10 | 50                 | 0.1           | 0.98                | 0.9      | 0.0025       | 60         | 1000    | 200                  | 100                             | 5            | 48.17% (Epoch 197)       |
-| LeNet-5 | CIFAR-10 | 5                  | 0.1           | 0.98                | 0.9      | 0.0025       | 6          | 10000   | 300                  | 100                             | 5            | 46.26% (Epoch 299)       |
+| Model   | Normalization | Dataset  | Samples per Client | Learning Rate | Learning Rate Decay | Momentum | Weight Decay | Batch Size | Clients | Communication Rounds | Clients per Communication Round | Local Epochs | Best Validation Accuracy         |
+|---------|---------------|----------|-------------------:|--------------:|--------------------:|---------:|-------------:|-----------:|--------:|---------------------:|--------------------------------:|-------------:|---------------------------------:|
+| LeNet-5 | n/a           | MNIST    | 600                | 0.01          | *None*              | 0.9      | 0.0005       | 60         | 100     | 100                  | 10                              | 5            | 98.83% (Communication Round 92)  |
+| LeNet-5 | n/a           | MNIST    | 60                 | 0.01          | *None*              | 0.9      | 0.0005       | 60         | 1000    | 200                  | 100                             | 5            | 96.60% (Communication Round 200) |
+| LeNet-5 | n/a           | MNIST    | 6                  | 0.01          | *None*              | 0.9      | 0.0005       | 6          | 10000   | 300                  | 100                             | 5            | 95.47% (Communication Round 300) |
+| LeNet-5 | n/a           | CIFAR-10 | 500                | 0.1           | 0.98                | 0.9      | 0.0025       | 60         | 100     | 100                  | 10                              | 5            | 57.56% (Communication Round 93)  |
+| LeNet-5 | n/a           | CIFAR-10 | 50                 | 0.1           | 0.98                | 0.9      | 0.0025       | 60         | 1000    | 200                  | 100                             | 5            | 48.17% (Communication Round 197) |
+| LeNet-5 | n/a           | CIFAR-10 | 5                  | 0.1           | 0.98                | 0.9      | 0.0025       | 6          | 10000   | 300                  | 100                             | 5            | 46.26% (Communication Round 299) |
 
 ## Contributing
 

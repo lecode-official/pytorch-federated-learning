@@ -4,6 +4,7 @@ __pycache__
 
 # Ignores output files of trainings (files that are in an experiments directory, PyTorch model checkpoint files, and plot images)
 experiments
+experiments-*
 *.pt
 *.png
 
