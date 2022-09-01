@@ -53,7 +53,7 @@ class Application:
         # Creates a command line argument parser for the application
         argument_parser = argparse.ArgumentParser(
             prog='fl',
-            description='An implementation of federated learning using federated averaging (FedAvg).',
+            description='A federated learning simulator written in PyTorch, which supports a virtually unlimited number of clients.',
             add_help=False
         )
 
@@ -70,7 +70,7 @@ class Application:
             '-v',
             '--version',
             action='version',
-            version=f'Federated Learning Simulator {__version__}',
+            version=f'PyTorch Federated Learning {__version__}',
             help='Displays the version string of the application and exits.'
         )
 

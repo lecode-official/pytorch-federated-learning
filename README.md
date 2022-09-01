@@ -177,6 +177,7 @@ If you use this software in your research, please cite it like this or use the "
 ```bibtex
 @software{Neumann_PyTorch_Federated_Learning_2022,
     author = {Neumann, David},
+    license = {MIT},
     month = {8},
     title = {{PyTorch Federated Learning}},
     url = {https://github.com/lecode-official/pytorch-federated-learning},
