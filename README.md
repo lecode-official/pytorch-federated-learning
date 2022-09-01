@@ -14,7 +14,7 @@ cd pytorch-federated-learning/source
 Before running the federated learning simulator, all dependencies have to be installed, which can easily be achieved using Miniconda. There are different environment files for the different operating systems and platforms. Please select an environment file that fits your operating system and platform. Currently online Linux AMD64 and MacOS ARM64 are officially supported.
 
 ```bash
-conda env create -f environment.<environment>.yaml
+conda env create -f environment.<operating-system>-<architecture>.yaml
 ```
 
 To use the virtual environment it must be activated first. After using the environment it has to be deactivated:
@@ -25,16 +25,16 @@ python -m fl <command> <arguments...>
 conda deactivate
 ```
 
-When you install new packages, please update the environment file. Please make sure to either create a new environment file for your operating system and platform (i.e., choose a moniker in the format `<operating-system>-<platform>`, e.g., `windows-amd64`), or overwrite the one that matches your operating system and platform. Ideally, try to update all supported environments if you plan on creating a pull request. The environment file can be updated like so:
+When you install new packages, please update the environment file. Please make sure to either create a new environment file for your operating system and platform (i.e., choose a moniker in the format `<operating-system>-<architecture>`, e.g., `windows-amd64`), or overwrite the one that matches your operating system and platform. Ideally, try to update all supported environments if you plan on creating a pull request. The environment file can be updated like so:
 
 ```bash
-conda env export | grep -v "prefix" > environment.<environment>.yaml
+conda env export | grep -v "prefix" > environment.<operating-system>-<architecture>.yaml
 ```
 
-When someone else has added or removed dependencies from the environment, you have update your environment from the `environment.<environment>.yaml` as well. Again, please make sure to select the environment that fits your operating system and platform. The `--prune` switch makes sure that dependencies that have been removed from the `environment.<environment>.yaml` are uninstalled):
+When someone else has added or removed dependencies from the environment, you have update your environment from the Anaconda environment file as well. Again, please make sure to select the environment that fits your operating system and platform. The `--prune` switch makes sure that dependencies that have been removed from the Anaconda environment file are uninstalled):
 
 ```bash
-conda env update --file environment.<environment>.yaml --prune
+conda env update --file environment.<operating-system>-<architecture>.yaml --prune
 ```
 
 ## Training Models
@@ -128,9 +128,9 @@ For the baseline experiments, the models were trained on the training subset and
 | VGG11   | BatchNorm      | MNIST    | 60                 | 0.01          | 0.98                | 0.9      | 0.0005       | 60         | 1000    | 200                  | 100                             | 5            | 98.99% (Communication Round 190) |
 | VGG11   | GroupNorm (32) | MNIST    | 60                 | 0.01          | 0.98                | 0.9      | 0.0005       | 60         | 1000    | 200                  | 100                             | 5            | 98.71% (Communication Round 190) |
 | VGG11   | BatchNorm      | MNIST    | 6                  | 0.01          | 0.98                | 0.9      | 0.0005       | 6          | 10000   | 300                  | 100                             | 5            | 98.77% (Communication Round 274) |
-| VGG11   | GroupNorm (32) | MNIST    | 6                  | 0.01          | 0.98                | 0.9      | 0.0005       | 6          | 10000   | 300                  | 100                             | 5            | ?% (Communication Round ?)       |
-| VGG11   | BatchNorm      | CIFAR-10 | 500                | 0.01          | 0.98                | 0.9      | 0.0005       | 50         | 100     | 100                  | 10                              | 5            | ?% (Communication Round ?)       |
-| VGG11   | GroupNorm (32) | CIFAR-10 | 500                | 0.01          | 0.98                | 0.9      | 0.0005       | 50         | 100     | 100                  | 10                              | 5            | ?% (Communication Round ?)       |
+| VGG11   | GroupNorm (32) | MNIST    | 6                  | 0.01          | 0.98                | 0.9      | 0.0005       | 6          | 10000   | 300                  | 100                             | 5            | 97.66% (Communication Round 290) |
+| VGG11   | BatchNorm      | CIFAR-10 | 500                | 0.05          | 0.98                | 0.9      | 0.0005       | 50         | 100     | 100                  | 10                              | 5            | 81.70% (Communication Round 97)  |
+| VGG11   | GroupNorm (32) | CIFAR-10 | 500                | 0.01          | 0.99                | 0.9      | 0.0005       | 50         | 100     | 100                  | 10                              | 5            | 77.21% (Communication Round 94)  |
 | VGG11   | BatchNorm      | CIFAR-10 | 50                 | 0.01          | 0.98                | 0.9      | 0.0005       | 50         | 1000    | 200                  | 100                             | 5            | ?% (Communication Round ?)       |
 | VGG11   | GroupNorm (32) | CIFAR-10 | 50                 | 0.01          | 0.98                | 0.9      | 0.0005       | 50         | 1000    | 200                  | 100                             | 5            | ?% (Communication Round ?)       |
 | VGG11   | BatchNorm      | CIFAR-10 | 5                  | 0.01          | 0.98                | 0.9      | 0.0005       | 5          | 10000   | 300                  | 100                             | 5            | ?% (Communication Round ?)       |
