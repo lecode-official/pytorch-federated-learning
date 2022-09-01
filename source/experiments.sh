@@ -230,7 +230,7 @@ python -m fl federated-averaging \
     --number-of-clients 100 \
     --number-of-communication-rounds 100 \
     --number-of-clients-per-communication-round 10 \
-    --learning-rate 0.1 \
+    --learning-rate 0.05 \
     --learning-rate-decay 0.98 \
     --batch-size 50 \
     --output-path $OUTPUT_PATH/$(date +"%Y-%m-%d-%H-%M-%S")-fedavg-vgg11-batch-normalization-cifar-10-100-clients
@@ -242,8 +242,8 @@ python -m fl federated-averaging \
     --number-of-clients 100 \
     --number-of-communication-rounds 100 \
     --number-of-clients-per-communication-round 10 \
-    --learning-rate 0.1 \
-    --learning-rate-decay 0.98 \
+    --learning-rate 0.01 \
+    --learning-rate-decay 0.99 \
     --batch-size 50 \
     --output-path $OUTPUT_PATH/$(date +"%Y-%m-%d-%H-%M-%S")-fedavg-vgg11-group-normalization-cifar-10-100-clients
 python -m fl federated-averaging \
@@ -254,7 +254,7 @@ python -m fl federated-averaging \
     --number-of-clients 1000 \
     --number-of-communication-rounds 200 \
     --number-of-clients-per-communication-round 100 \
-    --learning-rate 0.1 \
+    --learning-rate 0.01 \
     --learning-rate-decay 0.98 \
     --batch-size 50 \
     --output-path $OUTPUT_PATH/$(date +"%Y-%m-%d-%H-%M-%S")-fedavg-vgg11-batch-normalization-cifar-10-1000-clients
@@ -266,7 +266,7 @@ python -m fl federated-averaging \
     --number-of-clients 1000 \
     --number-of-communication-rounds 200 \
     --number-of-clients-per-communication-round 100 \
-    --learning-rate 0.1 \
+    --learning-rate 0.01 \
     --learning-rate-decay 0.98 \
     --batch-size 50 \
     --output-path $OUTPUT_PATH/$(date +"%Y-%m-%d-%H-%M-%S")-fedavg-vgg11-group-normalization-cifar-10-1000-clients
@@ -278,7 +278,7 @@ python -m fl federated-averaging \
     --number-of-clients 10000 \
     --number-of-communication-rounds 300 \
     --number-of-clients-per-communication-round 100 \
-    --learning-rate 0.1 \
+    --learning-rate 0.01 \
     --learning-rate-decay 0.98 \
     --batch-size 5 \
     --output-path $OUTPUT_PATH/$(date +"%Y-%m-%d-%H-%M-%S")-fedavg-vgg11-batch-normalization-cifar-10-10000-clients
@@ -290,7 +290,7 @@ python -m fl federated-averaging \
     --number-of-clients 10000 \
     --number-of-communication-rounds 300 \
     --number-of-clients-per-communication-round 100 \
-    --learning-rate 0.1 \
+    --learning-rate 0.01 \
     --learning-rate-decay 0.98 \
     --batch-size 5 \
     --output-path $OUTPUT_PATH/$(date +"%Y-%m-%d-%H-%M-%S")-fedavg-vgg11-group-normalization-cifar-10-10000-clients
