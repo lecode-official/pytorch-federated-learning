@@ -2,7 +2,7 @@
 
 ## 0.1.0
 
-*Unreleased*
+Released on September 5, 2022
 
 - Initial release
 - Implements federated averaging using an arbitrary number of clients
