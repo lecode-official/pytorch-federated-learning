@@ -24,7 +24,7 @@ keywords:
   - Federated Learning
   - Federated Averaging
 version: 0.1.0
-date-released: 2022-08-26
+date-released: 2022-09-05
 license: MIT
 repository: https://github.com/lecode-official/pytorch-federated-learning.git
 url: 'https://github.com/lecode-official/pytorch-federated-learning'
