@@ -118,23 +118,23 @@ For the baseline experiments, the models were trained on the training subset and
 | Model   | Normalization  | Dataset  | Samples per Client | Learning Rate | Learning Rate Decay | Momentum | Weight Decay | Batch Size | Clients | Communication Rounds | Clients per Communication Round | Local Epochs | Best Validation Accuracy         |
 |---------|----------------|----------|-------------------:|--------------:|--------------------:|---------:|-------------:|-----------:|--------:|---------------------:|--------------------------------:|-------------:|---------------------------------:|
 | LeNet-5 | *n/a*          | MNIST    | 600                | 0.01          | *None*              | 0.9      | 0.0005       | 60         | 100     | 100                  | 10                              | 5            | 98.99% (Communication Round 89)  |
-| LeNet-5 | *n/a*          | MNIST    | 60                 | 0.01          | *None*              | 0.9      | 0.0005       | 60         | 1000    | 200                  | 100                             | 5            | 96.60% (Communication Round 200) |
-| LeNet-5 | *n/a*          | MNIST    | 6                  | 0.01          | *None*              | 0.9      | 0.0005       | 6          | 10000   | 300                  | 100                             | 5            | 96.01% (Communication Round 300) |
+| LeNet-5 | *n/a*          | MNIST    | 60                 | 0.01          | *None*              | 0.9      | 0.0005       | 60         | 1,000   | 200                  | 100                             | 5            | 96.60% (Communication Round 200) |
+| LeNet-5 | *n/a*          | MNIST    | 6                  | 0.01          | *None*              | 0.9      | 0.0005       | 6          | 10,000  | 300                  | 100                             | 5            | 96.01% (Communication Round 300) |
 | LeNet-5 | *n/a*          | CIFAR-10 | 500                | 0.1           | 0.98                | 0.9      | 0.0025       | 50         | 100     | 100                  | 10                              | 5            | 58.27% (Communication Round 100) |
-| LeNet-5 | *n/a*          | CIFAR-10 | 50                 | 0.1           | 0.98                | 0.9      | 0.0025       | 60         | 1000    | 200                  | 100                             | 5            | 48.17% (Communication Round 197) |
-| LeNet-5 | *n/a*          | CIFAR-10 | 5                  | 0.1           | 0.98                | 0.9      | 0.0025       | 6          | 10000   | 300                  | 100                             | 5            | 46.26% (Communication Round 299) |
+| LeNet-5 | *n/a*          | CIFAR-10 | 50                 | 0.1           | 0.98                | 0.9      | 0.0025       | 60         | 1,000   | 200                  | 100                             | 5            | 48.17% (Communication Round 197) |
+| LeNet-5 | *n/a*          | CIFAR-10 | 5                  | 0.1           | 0.98                | 0.9      | 0.0025       | 6          | 10,000  | 300                  | 100                             | 5            | 46.26% (Communication Round 299) |
 | VGG11   | BatchNorm      | MNIST    | 600                | 0.01          | 0.98                | 0.9      | 0.0005       | 60         | 100     | 100                  | 10                              | 5            | 99.52% (Communication Round 76)  |
 | VGG11   | GroupNorm (32) | MNIST    | 600                | 0.01          | 0.98                | 0.9      | 0.0005       | 60         | 100     | 100                  | 10                              | 5            | 99.43% (Communication Round 79)  |
-| VGG11   | BatchNorm      | MNIST    | 60                 | 0.01          | 0.98                | 0.9      | 0.0005       | 60         | 1000    | 200                  | 100                             | 5            | 98.99% (Communication Round 190) |
-| VGG11   | GroupNorm (32) | MNIST    | 60                 | 0.01          | 0.98                | 0.9      | 0.0005       | 60         | 1000    | 200                  | 100                             | 5            | 98.71% (Communication Round 190) |
-| VGG11   | BatchNorm      | MNIST    | 6                  | 0.01          | 0.98                | 0.9      | 0.0005       | 6          | 10000   | 300                  | 100                             | 5            | 98.77% (Communication Round 274) |
-| VGG11   | GroupNorm (32) | MNIST    | 6                  | 0.01          | 0.98                | 0.9      | 0.0005       | 6          | 10000   | 300                  | 100                             | 5            | 97.66% (Communication Round 290) |
+| VGG11   | BatchNorm      | MNIST    | 60                 | 0.01          | 0.98                | 0.9      | 0.0005       | 60         | 1,000   | 200                  | 100                             | 5            | 98.99% (Communication Round 190) |
+| VGG11   | GroupNorm (32) | MNIST    | 60                 | 0.01          | 0.98                | 0.9      | 0.0005       | 60         | 1,000   | 200                  | 100                             | 5            | 98.71% (Communication Round 190) |
+| VGG11   | BatchNorm      | MNIST    | 6                  | 0.01          | 0.98                | 0.9      | 0.0005       | 6          | 10,000  | 300                  | 100                             | 5            | 98.77% (Communication Round 274) |
+| VGG11   | GroupNorm (32) | MNIST    | 6                  | 0.01          | 0.98                | 0.9      | 0.0005       | 6          | 10,000  | 300                  | 100                             | 5            | 97.66% (Communication Round 290) |
 | VGG11   | BatchNorm      | CIFAR-10 | 500                | 0.05          | 0.98                | 0.9      | 0.0005       | 50         | 100     | 100                  | 10                              | 5            | 81.70% (Communication Round 97)  |
 | VGG11   | GroupNorm (32) | CIFAR-10 | 500                | 0.01          | 0.99                | 0.9      | 0.0005       | 50         | 100     | 100                  | 10                              | 5            | 77.21% (Communication Round 94)  |
-| VGG11   | BatchNorm      | CIFAR-10 | 50                 | 0.01          | 0.98                | 0.9      | 0.0005       | 50         | 1000    | 200                  | 100                             | 5            | 67.35% (Communication Round 190) |
-| VGG11   | GroupNorm (32) | CIFAR-10 | 50                 | 0.01          | 0.98                | 0.9      | 0.0005       | 50         | 1000    | 200                  | 100                             | 5            | 63.88% (Communication Round 186) |
-| VGG11   | BatchNorm      | CIFAR-10 | 5                  | 0.01          | 0.98                | 0.9      | 0.0005       | 5          | 10000   | 300                  | 100                             | 5            | 63.15% (Communication Round 281) |
-| VGG11   | GroupNorm (32) | CIFAR-10 | 5                  | 0.01          | 0.98                | 0.9      | 0.0005       | 5          | 10000   | 300                  | 100                             | 5            | 52.62% (Communication Round 273) |
+| VGG11   | BatchNorm      | CIFAR-10 | 50                 | 0.01          | 0.98                | 0.9      | 0.0005       | 50         | 1,000   | 200                  | 100                             | 5            | 67.35% (Communication Round 190) |
+| VGG11   | GroupNorm (32) | CIFAR-10 | 50                 | 0.01          | 0.98                | 0.9      | 0.0005       | 50         | 1,000   | 200                  | 100                             | 5            | 63.88% (Communication Round 186) |
+| VGG11   | BatchNorm      | CIFAR-10 | 5                  | 0.01          | 0.98                | 0.9      | 0.0005       | 5          | 10,000  | 300                  | 100                             | 5            | 63.15% (Communication Round 281) |
+| VGG11   | GroupNorm (32) | CIFAR-10 | 5                  | 0.01          | 0.98                | 0.9      | 0.0005       | 5          | 10,000  | 300                  | 100                             | 5            | 52.62% (Communication Round 273) |
 
 ## Contributing
 
@@ -181,7 +181,7 @@ If you use this software in your research, please cite it like this or use the "
     month = {9},
     title = {{PyTorch Federated Learning}},
     url = {https://github.com/lecode-official/pytorch-federated-learning},
-    version = {0.1.0},
+    version = {0.2.0},
     year = {2022}
 }
 ```
