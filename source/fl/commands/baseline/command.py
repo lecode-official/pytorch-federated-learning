@@ -13,7 +13,7 @@ import torch
 from fl.commands.base import BaseCommand
 from fl.lifecycle import Trainer, Validator
 from fl.datasets import DatasetType, create_dataset
-from fl.models import ModelType, NormalizationLayerKind, create_model, get_minimum_input_size
+from fl.models import ModelType, NormalizationLayerKind, create_model, get_minimum_input_size, get_number_of_parameters
 
 
 class BaselineCommand(BaseCommand):
@@ -90,6 +90,7 @@ class BaselineCommand(BaseCommand):
         self.logger.info('Creating model (%s)...', model_type.get_human_readable_name())
         normalization_layer_kind = NormalizationLayerKind(command_line_arguments.normalization_layer_kind)
         model = create_model(model_type, sample_shape, number_of_classes, normalization_layer_kind)
+        self.logger.info('Created model with %s trainable parameters', f'{get_number_of_parameters(model):,}')
 
         # Creates the trainer
         self.logger.info('Creating trainer...')

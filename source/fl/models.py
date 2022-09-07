@@ -300,3 +300,16 @@ def create_model(
         return Vgg11(input_shape, number_of_classes, normalization_layer_kind)
 
     raise ValueError(f'The model type "{model_type.value}" is not supported.')
+
+
+def get_number_of_parameters(model: torch.nn.Module) -> int:
+    """Retrieves the total number of trainable parameters of the specified model.
+
+    Args:
+        model (torch.nn.Module): The model for which the number of trainable parameters is to be retrieved.
+
+    Returns:
+        int: Returns the number of trainable parameters of the specified model.
+    """
+
+    return sum([parameter.numel() for parameter in model.parameters() if parameter.requires_grad])

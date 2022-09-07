@@ -10,7 +10,7 @@ import numpy
 import torch
 
 from fl.lifecycle import Trainer, Validator
-from fl.models import ModelType, NormalizationLayerKind, create_model
+from fl.models import ModelType, NormalizationLayerKind, create_model, get_number_of_parameters
 
 
 class AggregationOperator(Enum):
@@ -361,7 +361,7 @@ class FederatedLearningCentralServer:
         # Initializes the logger
         self.logger = logging.getLogger(__name__ + '.' + self.__class__.__name__)
 
-        # Creates the global model and the validator for it
+        # Creates the global model
         self.logger.info('Creating central server model (%s)...', self.global_model_type.get_human_readable_name())
         self.global_model = create_model(
             self.global_model_type,
@@ -369,6 +369,9 @@ class FederatedLearningCentralServer:
             number_of_classes=self.number_of_classes,
             normalization_layer_kind=self.global_model_normalization_layer_kind
         )
+        self.logger.info('Created central server model with %s trainable parameters', f'{get_number_of_parameters(self.global_model):,}')
+
+        # Creates the validator for the central server model
         self.validator = Validator(self.device, self.global_model, self.central_validation_subset, self.batch_size)
 
         # Initializes the federated averaging algorithm
