@@ -4,6 +4,7 @@
 
 *Unreleased*
 
+- The dataset and model types are now enumerations instead of strings, which may not be very Pythonic, but it more type safe
 - Non-i.i.d dataset splitting was implemented
   - There are now four options for splitting datasets: **random**, **unbalanced labels**, **unbalanced sample count**, and **unbalanced**
   - **Random** is the same splitting strategy that was already present in the previous release and it is the default, splitting randomly results in an i.i.d. split of the dataset where all clients have the same amount of samples

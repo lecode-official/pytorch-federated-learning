@@ -3,10 +3,34 @@
 import numpy
 import torch
 from enum import Enum
+from typing import Type
 
 
-AVAILABLE_MODELS = ['lenet-5', 'vgg11']
-DEFAULT_MODEL = 'lenet-5'
+class ModelType(Enum):
+    """Represents an enumeration of all the available model types."""
+
+    LENET_5 = 'lenet-5'
+    VGG11 = 'vgg11'
+
+    @classmethod
+    def available_models(cls: Type['ModelType']) -> list[str]:
+        """Retrieves a list of the values for the available models.
+
+        Returns:
+            list[str]: Returns a list that contains the values for all available models.
+        """
+
+        return [model_type.value for model_type in cls]
+
+    @classmethod
+    def default_model(cls: Type['ModelType']) -> str:
+        """Retrieves the value for the default model.
+
+        Returns:
+            str: Returns the value of the default model.
+        """
+
+        return ModelType.LENET_5.value
 
 
 class NormalizationLayerKind(Enum):
@@ -211,11 +235,11 @@ class Vgg11(torch.nn.Module):
         return y
 
 
-def get_minimum_input_size(model_type: str) -> tuple[int, int]:
+def get_minimum_input_size(model_type: ModelType) -> tuple[int, int]:
     """Determines the minimum size of the input of the specified model.
 
     Args:
-        model_type (str): The type of model for which the minimum input size is to be determined.
+        model_type (ModelType): The type of model for which the minimum input size is to be determined.
 
     Raises:
         ValueError:
@@ -225,17 +249,17 @@ def get_minimum_input_size(model_type: str) -> tuple[int, int]:
         tuple[int, int]: Returns a tuple containing the minimum supported height and the minimum supported width of the specified model.
     """
 
-    if model_type == 'lenet-5':
+    if model_type == ModelType.LENET_5:
         return (16, 16)
 
-    if model_type == 'vgg11':
+    if model_type == ModelType.VGG11:
         return (32, 32)
 
-    raise ValueError(f'The model type "{model_type}" is not supported.')
+    raise ValueError(f'The model type "{model_type.value}" is not supported.')
 
 
 def create_model(
-        model_type: str,
+        model_type: ModelType,
         input_shape: tuple[int, int, int],
         number_of_classes: int,
         normalization_layer_kind: NormalizationLayerKind
@@ -243,7 +267,7 @@ def create_model(
     """Creates a model of the specified type.
 
     Args:
-        model_type (str): The type of model that is to be created.
+        model_type (ModelType): The type of model that is to be created.
         input_shape (tuple[int, int, int]): The shape of the data that is fed to the model as input.
         number_of_classes (int): The number of classes between which the model has to differentiate.
         normalization_layer_kind (NormalizationLayerKind): The kind of the normalization layer that is used.
@@ -256,10 +280,10 @@ def create_model(
         torch.nn.Module: Returns the created model.
     """
 
-    if model_type == 'lenet-5':
+    if model_type == ModelType.LENET_5:
         return LeNet5(input_shape, number_of_classes)
 
-    if model_type == 'vgg11':
+    if model_type == ModelType.VGG11:
         return Vgg11(input_shape, number_of_classes, normalization_layer_kind)
 
-    raise ValueError(f'The model type "{model_type}" is not supported.')
+    raise ValueError(f'The model type "{model_type.value}" is not supported.')

@@ -11,8 +11,8 @@ import yaml
 import torch
 
 from fl.commands.base import BaseCommand
-from fl.datasets import create_dataset, split_dataset
-from fl.models import NormalizationLayerKind, get_minimum_input_size
+from fl.datasets import DatasetType, create_dataset, split_dataset
+from fl.models import ModelType, NormalizationLayerKind, get_minimum_input_size
 from fl.federated_learning import FederatedLearningCentralServer, FederatedLearningClient
 
 
@@ -37,6 +37,10 @@ class FederatedAveragingCommand(BaseCommand):
         # Makes sure that the output directory exists
         os.makedirs(command_line_arguments.output_path, exist_ok=True)
 
+        # Parses the model and dataset types
+        model_type = ModelType(command_line_arguments.model_type)
+        dataset_type = DatasetType(command_line_arguments.dataset_type)
+
         # Prepares the training statistics CSV files by writing the headers to files
         with open(os.path.join(command_line_arguments.output_path, 'central-server-training-statistics.csv'), 'w') as training_statistics_file:
             csv_writer = csv.writer(training_statistics_file)
@@ -55,9 +59,9 @@ class FederatedAveragingCommand(BaseCommand):
                 'number_of_clients': command_line_arguments.number_of_clients,
                 'number_of_clients_per_communication_round': \
                     command_line_arguments.number_of_clients_per_communication_round or command_line_arguments.number_of_clients,
-                'model': command_line_arguments.model_type,
+                'model': model_type.value,
                 'normalization_layer_kind': command_line_arguments.normalization_layer_kind,
-                'dataset': command_line_arguments.dataset_type,
+                'dataset': dataset_type.value,
                 'dataset_path': command_line_arguments.dataset_path,
                 'number_of_communication_rounds': command_line_arguments.number_of_communication_rounds,
                 'number_of_local_epochs': command_line_arguments.number_of_local_epochs,
@@ -84,10 +88,10 @@ class FederatedAveragingCommand(BaseCommand):
         self.logger.info(f'Selected {device_name} to perform training...')
 
         # Loading the datasets
-        self.logger.info('Loading dataset (%s)...', command_line_arguments.dataset_type)
-        minimum_sample_shape = get_minimum_input_size(command_line_arguments.model_type)
+        self.logger.info('Loading dataset (%s)...', dataset_type.value)
+        minimum_sample_shape = get_minimum_input_size(model_type)
         training_subset, validation_subset, sample_shape, number_of_classes = create_dataset(
-            command_line_arguments.dataset_type,
+            dataset_type,
             command_line_arguments.dataset_path,
             minimum_sample_shape
         )
@@ -101,7 +105,7 @@ class FederatedAveragingCommand(BaseCommand):
             clients.append(FederatedLearningClient(
                 index + 1,
                 device,
-                command_line_arguments.model_type,
+                model_type,
                 normalization_layer_kind,
                 client_subsets[index],
                 sample_shape,
@@ -117,7 +121,7 @@ class FederatedAveragingCommand(BaseCommand):
             clients,
             command_line_arguments.number_of_clients_per_communication_round,
             device,
-            command_line_arguments.model_type,
+            model_type,
             normalization_layer_kind,
             validation_subset,
             sample_shape,
@@ -178,8 +182,8 @@ class FederatedAveragingCommand(BaseCommand):
 
                     # Since the updated global model outperformed all previous global models, a checkpoint is saved for it
                     global_model_checkpoint_file_path = self.save_global_model_checkpoint(
-                        command_line_arguments.model_type,
-                        command_line_arguments.dataset_type,
+                        model_type,
+                        dataset_type,
                         communication_round,
                         central_server_validation_accuracy * 100,
                         command_line_arguments.output_path
@@ -197,19 +201,26 @@ class FederatedAveragingCommand(BaseCommand):
         # Saves the trained global model and the training statistics plot to disk
         self.logger.info('Finished federated training...')
         self.save_global_model_checkpoint(
-            command_line_arguments.model_type,
-            command_line_arguments.dataset_type,
+            model_type,
+            dataset_type,
             communication_round,
             central_server_validation_accuracy * 100,
             command_line_arguments.output_path
         )
 
-    def save_global_model_checkpoint(self, model_type: str, dataset_type: str, communication_round: str, accuracy: float, output_path: str) -> str:
+    def save_global_model_checkpoint(
+            self,
+            model_type: ModelType,
+            dataset_type: DatasetType,
+            communication_round: str,
+            accuracy: float,
+            output_path: str
+        ) -> str:
         """Saves the current state of the global model of the central server to disk.
 
         Args:
-            model_type (str): The type of model that is being trained.
-            dataset_type (str): The type of dataset that the model being trained on.
+            model_type (ModelType): The type of model that is being trained.
+            dataset_type (DatasetType): The type of dataset that the model being trained on.
             communication_round (str): The current communication round.
             accuracy (float): The accuracy of the model.
             output_path (str): The path to the directory into which the model checkpoint file is to be saved.
@@ -218,10 +229,10 @@ class FederatedAveragingCommand(BaseCommand):
             str: Returns the path to the checkpoint file.
         """
 
+        current_date_time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         global_model_checkpoint_file_path = os.path.join(
             output_path,
-            f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}-{model_type}-{dataset_type}-fedavg-communication-round-{communication_round}-'
-            f'accuracy-{accuracy:.2f}.pt'
+            f'{current_date_time}-{model_type.value}-{dataset_type.value}-fedavg-communication-round-{communication_round}-accuracy-{accuracy:.2f}.pt'
         )
         self.logger.info('Saving global model checkpoint to disk (%s)...', global_model_checkpoint_file_path)
         self.central_server.save_checkpoint(global_model_checkpoint_file_path)

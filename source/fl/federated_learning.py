@@ -10,7 +10,7 @@ import numpy
 import torch
 
 from fl.lifecycle import Trainer, Validator
-from fl.models import NormalizationLayerKind, create_model
+from fl.models import ModelType, NormalizationLayerKind, create_model
 
 
 class AggregationOperator(Enum):
@@ -183,7 +183,7 @@ class FederatedLearningClient:
             self,
             client_id: int,
             device: Union[str, torch.device],
-            local_model_type: str,
+            local_model_type: ModelType,
             local_model_normalization_layer_kind: NormalizationLayerKind,
             local_training_subset: torch.utils.data.Dataset,
             sample_shape: tuple,
@@ -196,7 +196,7 @@ class FederatedLearningClient:
         Args:
             client_id (int): An ID, which uniquely identifies the client.
             device (Union[str, torch.device]): The device on which the local model is to be trained.
-            local_model_type (str): The type of local model that is to be trained.
+            local_model_type (ModelType): The type of local model that is to be trained.
             local_model_normalization_layer_kind (NormalizationLayerKind): The kind of the normalization layer that is used for the local model.
             local_training_subset (torch.utils.data.Dataset): The training subset of the local dataset on which the model is to be trained.
             sample_shape (tuple): The shape of the samples in the dataset.
@@ -301,7 +301,7 @@ class FederatedLearningCentralServer:
             clients: list[FederatedLearningClient],
             number_of_clients_per_communication_round: Optional[int],
             device: Union[str, torch.device],
-            global_model_type: str,
+            global_model_type: ModelType,
             global_model_normalization_layer_kind: NormalizationLayerKind,
             central_validation_subset: torch.utils.data.Dataset,
             sample_shape: tuple,
@@ -319,7 +319,7 @@ class FederatedLearningCentralServer:
                 of clients, which will train and communicate their updates back. This parameter specifies the number of clients that will be selected
                 at random in each communication round. If not specified, this defaults to the number of clients.
             device (Union[str, torch.device]): The device on which the global model of the central server is to be validated.
-            global_model_type (str): The type of model that is to be used as global model for the central server.
+            global_model_type (ModelType): The type of model that is to be used as global model for the central server.
             global_model_normalization_layer_kind (NormalizationLayerKind): The kind of the normalization layer that is used for the global model.
             central_validation_subset (torch.utils.data.Dataset): The validation subset on which the global model is to be validated.
             sample_shape (tuple): The shape of the samples in the dataset.

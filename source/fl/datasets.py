@@ -1,11 +1,37 @@
 """Datasets used to train federated models."""
 
+from enum import Enum
+from typing import Type
+
 import torch
 import torchvision
 
 
-AVAILABLE_DATASETS = ['mnist', 'cifar-10']
-DEFAULT_DATASET = 'mnist'
+class DatasetType(Enum):
+    """Represents the different types of datasets that are available."""
+
+    MNIST = 'mnist'
+    CIFAR_10 = 'cifar-10'
+
+    @classmethod
+    def available_datasets(cls: Type['DatasetType']) -> list[str]:
+        """Retrieves a list of the values for the available datasets.
+
+        Returns:
+            list[str]: Returns a list that contains the values for all available datasets.
+        """
+
+        return [dataset_type.value for dataset_type in cls]
+
+    @classmethod
+    def default_dataset(cls: Type['DatasetType']) -> str:
+        """Retrieves the value for the default dataset.
+
+        Returns:
+            str: Returns the value of the default dataset.
+        """
+
+        return DatasetType.MNIST.value
 
 
 def load_cifar_10(
@@ -69,14 +95,14 @@ def load_mnist(
 
 
 def create_dataset(
-        dataset_type: str,
+        dataset_type: DatasetType,
         path: str,
         minimum_sample_size: tuple[int, int]
     ) -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset, tuple[int, int, int], int]:
     """Creates the specified dataset.
 
     Args:
-        dataset_type (str): The type of dataset that is to be created.
+        dataset_type (DatasetType): The type of dataset that is to be created.
         path (str): The path to the directory that contains the dataset. If the dataset does not exist, it is automatically downloaded.
         minimum_sample_size (tuple[int, int]): The minimum height and minimum width of the samples. If required, the size of the samples is adapted.
 
@@ -92,13 +118,13 @@ def create_dataset(
     if path is None:
         raise ValueError('No dataset path was specified.')
 
-    if dataset_type == 'cifar-10':
-        return load_cifar_10(path, minimum_sample_size)
-
-    if dataset_type == 'mnist':
+    if dataset_type == DatasetType.MNIST:
         return load_mnist(path, minimum_sample_size)
 
-    raise ValueError(f'The dataset type "{dataset_type}" is not supported.')
+    if dataset_type == DatasetType.CIFAR_10:
+        return load_cifar_10(path, minimum_sample_size)
+
+    raise ValueError(f'The dataset type "{dataset_type.value}" is not supported.')
 
 
 def split_dataset(dataset: torch.utils.data.Dataset, number_of_clients: int) -> list[torch.utils.data.Dataset]:

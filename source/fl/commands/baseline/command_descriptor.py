@@ -2,8 +2,8 @@
 
 from argparse import ArgumentParser
 
-import fl.models
-import fl.datasets
+from fl.models import ModelType
+from fl.datasets import DatasetType
 from fl.commands.base import BaseCommandDescriptor
 
 
@@ -40,9 +40,9 @@ class BaselineCommandDescriptor(BaseCommandDescriptor):
             '--model',
             dest='model_type',
             type=str,
-            choices=fl.models.AVAILABLE_MODELS,
-            default=fl.models.DEFAULT_MODEL,
-            help=f'The model that is to be used for the training. Defaults to "{fl.models.DEFAULT_MODEL}".'
+            choices=ModelType.available_models(),
+            default=ModelType.default_model(),
+            help=f'The model that is to be used for the training. Defaults to "{ModelType.default_model()}".'
         )
         argument_parser.add_argument(
             '-s',
@@ -64,9 +64,9 @@ class BaselineCommandDescriptor(BaseCommandDescriptor):
             '--dataset',
             dest='dataset_type',
             type=str,
-            choices=fl.datasets.AVAILABLE_DATASETS,
-            default=fl.datasets.DEFAULT_DATASET,
-            help=f'The dataset that is to be used for the training. Defaults to "{fl.datasets.DEFAULT_DATASET}".'
+            choices=DatasetType.available_datasets(),
+            default=DatasetType.default_dataset(),
+            help=f'The dataset that is to be used for the training. Defaults to "{DatasetType.default_dataset()}".'
         )
         argument_parser.add_argument(
             '-D',

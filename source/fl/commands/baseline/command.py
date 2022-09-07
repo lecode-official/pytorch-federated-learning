@@ -10,10 +10,10 @@ from argparse import Namespace
 import yaml
 import torch
 
-from fl.datasets import create_dataset
 from fl.commands.base import BaseCommand
 from fl.lifecycle import Trainer, Validator
-from fl.models import NormalizationLayerKind, create_model, get_minimum_input_size
+from fl.datasets import DatasetType, create_dataset
+from fl.models import ModelType, NormalizationLayerKind, create_model, get_minimum_input_size
 
 
 class BaselineCommand(BaseCommand):
@@ -37,6 +37,10 @@ class BaselineCommand(BaseCommand):
         # Makes sure that the output directory exists
         os.makedirs(command_line_arguments.output_path, exist_ok=True)
 
+        # Parses the model and dataset types
+        model_type = ModelType(command_line_arguments.model_type)
+        dataset_type = DatasetType(command_line_arguments.dataset_type)
+
         # Prepares the training statistics CSV file by writing the header to file
         with open(os.path.join(command_line_arguments.output_path, 'training-statistics.csv'), 'w') as training_statistics_file:
             csv_writer = csv.writer(training_statistics_file)
@@ -46,9 +50,9 @@ class BaselineCommand(BaseCommand):
         with open(os.path.join(command_line_arguments.output_path, 'hyperparameters.yaml'), 'w') as hyperparameters_file:
             yaml.dump({
                 'method': 'baseline',
-                'model': command_line_arguments.model_type,
+                'model': model_type.value,
                 'normalization_layer_kind': command_line_arguments.normalization_layer_kind,
-                'dataset': command_line_arguments.dataset_type,
+                'dataset': dataset_type.value,
                 'dataset_path': command_line_arguments.dataset_path,
                 'number_of_epochs': command_line_arguments.number_of_epochs,
                 'output_path': command_line_arguments.output_path,
@@ -74,18 +78,18 @@ class BaselineCommand(BaseCommand):
         self.logger.info(f'Selected {device_name} to perform training...')
 
         # Loading the datasets
-        self.logger.info('Loading dataset (%s)...', command_line_arguments.dataset_type)
-        minimum_sample_shape = get_minimum_input_size(command_line_arguments.model_type)
+        self.logger.info('Loading dataset (%s)...', dataset_type.value)
+        minimum_sample_shape = get_minimum_input_size(model_type)
         training_subset, validation_subset, sample_shape, number_of_classes = create_dataset(
-            command_line_arguments.dataset_type,
+            dataset_type,
             command_line_arguments.dataset_path,
             minimum_sample_shape
         )
 
         # Creates the model
-        self.logger.info('Creating model...')
+        self.logger.info('Creating model (%s)...', model_type.value)
         normalization_layer_kind = NormalizationLayerKind(command_line_arguments.normalization_layer_kind)
-        model = create_model(command_line_arguments.model_type, sample_shape, number_of_classes, normalization_layer_kind)
+        model = create_model(model_type, sample_shape, number_of_classes, normalization_layer_kind)
 
         # Creates the trainer
         self.logger.info('Creating trainer...')
@@ -154,8 +158,8 @@ class BaselineCommand(BaseCommand):
 
                     # Since the updated model outperformed all previous models, a checkpoint is saved for it
                     model_checkpoint_file_path = self.save_model_checkpoint(
-                        command_line_arguments.model_type,
-                        command_line_arguments.dataset_type,
+                        model_type,
+                        dataset_type,
                         epoch,
                         validation_accuracy * 100,
                         command_line_arguments.output_path
@@ -173,19 +177,19 @@ class BaselineCommand(BaseCommand):
         # Saves the trained model to disk
         self.logger.info('Finished training...')
         self.save_model_checkpoint(
-            command_line_arguments.model_type,
-            command_line_arguments.dataset_type,
+            model_type,
+            dataset_type,
             epoch,
             validation_accuracy * 100,
             command_line_arguments.output_path
         )
 
-    def save_model_checkpoint(self, model_type: str, dataset_type: str, epoch: str, accuracy: float, output_path: str) -> str:
+    def save_model_checkpoint(self, model_type: ModelType, dataset_type: DatasetType, epoch: str, accuracy: float, output_path: str) -> str:
         """Saves the current state of the model to disk.
 
         Args:
-            model_type (str): The type of model that is being trained.
-            dataset_type (str): The type of dataset that the model being trained on.
+            model_type (ModelType): The type of model that is being trained.
+            dataset_type (DatasetType): The type of dataset that the model being trained on.
             epoch (str): The current epoch.
             accuracy (float): The accuracy of the model.
             output_path (str): The path to the directory into which the model checkpoint file is to be saved.
@@ -194,9 +198,10 @@ class BaselineCommand(BaseCommand):
             str: Returns the path to the checkpoint file.
         """
 
+        current_date_time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         model_checkpoint_file_path = os.path.join(
             output_path,
-            f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}-{model_type}-{dataset_type}-baseline-epoch-{epoch}-accuracy-{accuracy:.2f}.pt'
+            f'{current_date_time}-{model_type.value}-{dataset_type.value}-baseline-epoch-{epoch}-accuracy-{accuracy:.2f}.pt'
         )
         self.logger.info('Saving model checkpoint to disk (%s)...', model_checkpoint_file_path)
         self.trainer.save_checkpoint(model_checkpoint_file_path)
