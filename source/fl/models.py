@@ -32,6 +32,19 @@ class ModelType(Enum):
 
         return ModelType.LENET_5.value
 
+    def get_human_readable_name(self) -> str:
+        """Retrieves a human-readable name for the model type.
+
+        Returns:
+            str: Returns a human-readable name for the model type.
+        """
+
+        human_readable_model_names_map = {
+            ModelType.LENET_5: 'LeNet-5',
+            ModelType.VGG11: 'VGG11'
+        }
+        return human_readable_model_names_map[self]
+
 
 class NormalizationLayerKind(Enum):
     """Represents an enumeration of all the different normalization layer kinds that can be used."""

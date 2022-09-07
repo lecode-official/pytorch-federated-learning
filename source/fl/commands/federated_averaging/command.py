@@ -88,7 +88,7 @@ class FederatedAveragingCommand(BaseCommand):
         self.logger.info(f'Selected {device_name} to perform training...')
 
         # Loading the datasets
-        self.logger.info('Loading dataset (%s)...', dataset_type.value)
+        self.logger.info('Loading dataset (%s)...', dataset_type.get_human_readable_name())
         minimum_sample_shape = get_minimum_input_size(model_type)
         training_subset, validation_subset, sample_shape, number_of_classes = create_dataset(
             dataset_type,

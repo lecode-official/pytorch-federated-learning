@@ -1,10 +1,11 @@
 # Changelog
 
-## 0.2.0
+## v0.2.0
 
 *Unreleased*
 
 - The dataset and model types are now enumerations instead of strings, which may not be very Pythonic, but it more type safe
+- The dataset and model types are now reported in the logs using human-readable names
 - Non-i.i.d dataset splitting was implemented
   - There are now four options for splitting datasets: **random**, **unbalanced labels**, **unbalanced sample count**, and **unbalanced**
   - **Random** is the same splitting strategy that was already present in the previous release and it is the default, splitting randomly results in an i.i.d. split of the dataset where all clients have the same amount of samples
@@ -13,9 +14,9 @@
   - **Unbalanced** is a mix between the unbalanced labels and unbalanced sample counts splitting methods, the samples are distributed among the clients in such a way that the labels and the sample counts are unbalanced, where the label ratios follow a Dirichlet distribution and the sample counts of the clients follow a log-normal distribution, the parameters for both distributions can be controlled via the same new command line arguments that were introduced for the unbalanced label and the unbalanced sample count dataset splitting strategies
 - More experiments on all supported models and datasets using different dataset splitting strategies were performed and the results were recorded in the read me
 
-## 0.1.0
+## v0.1.0
 
-Released on September 5, 2022
+*Released on September 5, 2022*
 
 - Initial release
 - Implements federated averaging using an arbitrary number of clients

@@ -33,6 +33,19 @@ class DatasetType(Enum):
 
         return DatasetType.MNIST.value
 
+    def get_human_readable_name(self) -> str:
+        """Retrieves a human-readable name for the dataset type.
+
+        Returns:
+            str: Returns a human-readable name for the dataset type.
+        """
+
+        human_readable_dataset_names_map = {
+            DatasetType.MNIST: 'MNIST',
+            DatasetType.CIFAR_10: 'CIFAR-10'
+        }
+        return human_readable_dataset_names_map[self]
+
 
 def load_cifar_10(
         path: str,

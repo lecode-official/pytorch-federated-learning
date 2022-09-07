@@ -362,6 +362,7 @@ class FederatedLearningCentralServer:
         self.logger = logging.getLogger(__name__ + '.' + self.__class__.__name__)
 
         # Creates the global model and the validator for it
+        self.logger.info('Creating central server model (%s)...', self.global_model_type.get_human_readable_name())
         self.global_model = create_model(
             self.global_model_type,
             input_shape=self.sample_shape,

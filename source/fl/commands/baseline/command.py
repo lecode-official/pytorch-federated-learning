@@ -78,7 +78,7 @@ class BaselineCommand(BaseCommand):
         self.logger.info(f'Selected {device_name} to perform training...')
 
         # Loading the datasets
-        self.logger.info('Loading dataset (%s)...', dataset_type.value)
+        self.logger.info('Loading dataset (%s)...', dataset_type.get_human_readable_name())
         minimum_sample_shape = get_minimum_input_size(model_type)
         training_subset, validation_subset, sample_shape, number_of_classes = create_dataset(
             dataset_type,
@@ -87,7 +87,7 @@ class BaselineCommand(BaseCommand):
         )
 
         # Creates the model
-        self.logger.info('Creating model (%s)...', model_type.value)
+        self.logger.info('Creating model (%s)...', model_type.get_human_readable_name())
         normalization_layer_kind = NormalizationLayerKind(command_line_arguments.normalization_layer_kind)
         model = create_model(model_type, sample_shape, number_of_classes, normalization_layer_kind)
 
