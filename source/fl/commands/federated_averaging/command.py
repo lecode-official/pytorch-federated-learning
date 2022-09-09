@@ -11,7 +11,7 @@ import yaml
 import torch
 
 from fl.commands.base import BaseCommand
-from fl.datasets import DatasetType, create_dataset, split_dataset
+from fl.datasets import DatasetType, create_dataset, split_dataset_using_random_strategy
 from fl.models import ModelType, NormalizationLayerKind, get_minimum_input_size
 from fl.federated_learning import FederatedLearningCentralServer, FederatedLearningClient
 
@@ -95,7 +95,7 @@ class FederatedAveragingCommand(BaseCommand):
             command_line_arguments.dataset_path,
             minimum_sample_shape
         )
-        client_subsets = split_dataset(training_subset, command_line_arguments.number_of_clients)
+        client_subsets = split_dataset_using_random_strategy(training_subset, command_line_arguments.number_of_clients)
 
         # Creates the clients
         clients = []

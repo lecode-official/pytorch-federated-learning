@@ -3,6 +3,7 @@
 from enum import Enum
 from typing import Type
 
+import numpy
 import torch
 import torchvision
 
@@ -140,8 +141,9 @@ def create_dataset(
     raise ValueError(f'The dataset type "{dataset_type.value}" is not supported.')
 
 
-def split_dataset(dataset: torch.utils.data.Dataset, number_of_clients: int) -> list[torch.utils.data.Dataset]:
-    """Splits the specified dataset evenly among the specified number of clients.
+def split_dataset_using_random_strategy(dataset: torch.utils.data.Dataset, number_of_clients: int) -> list[torch.utils.data.Dataset]:
+    """Splits the specified dataset evenly among the specified number of clients. This results in an i.i.d. split of the dataset, where every client
+    receives the same amount of samples.
 
     Args:
         dataset (torch.utils.data.Dataset): The dataset that is to be split.
@@ -159,3 +161,43 @@ def split_dataset(dataset: torch.utils.data.Dataset, number_of_clients: int) -> 
 
     # Splits the dataset into subsets for each client and returns the subsets
     return torch.utils.data.random_split(dataset, client_dataset_sizes)
+
+def split_dataset_using_unbalanced_sample_counts_strategy(
+        dataset: torch.utils.data.Dataset,
+        number_of_clients: int,
+        sigma: float
+    ) -> list[torch.utils.data.Dataset]:
+    """Splits the dataset among the clients in a way such that clients have a different amount of samples, the amount of samples per client follows a
+    log-normal distribution (paper: https://openreview.net/pdf?id=B7v4QMR6Z9w).
+
+    Args:
+        dataset (torch.utils.data.Dataset): The dataset that is to be split.
+        number_of_clients (int): The number of clients among which the dataset is to be split.
+        sigma (float): The standard deviation of the normal distribution that is underlying the log-normal distribution. Must be non-negative.
+
+    Returns:
+        tuple[torch.utils.data.Dataset, list[torch.utils.data.Dataset]]: Returns a list that contains subsets of the specified dataset for every
+            federated learning client.
+    """
+
+    # The number of samples per client follows a log-normal distribution
+    number_of_samples = len(dataset)
+    average_number_of_samples_per_client = number_of_samples / number_of_clients
+    number_of_samples_per_client = numpy.random.lognormal(mean=average_number_of_samples_per_client, sigma=sigma, size=number_of_clients)
+    number_of_samples_per_client = number_of_samples_per_client / number_of_samples_per_client.sum() * number_of_samples
+    number_of_samples_per_client = number_of_samples_per_client.astype(int)
+
+    # The stochastic nature of the process by which the number of samples per client was determined in the previous step means, that the sum of all
+    # samples does not necessarily sum of the the total number of samples available (since the float values are truncated to integers, the sum should
+    # be less than the number of samples available), therefore, a samples is added/subtracted from the first n clients, where n is the absolute
+    # difference between the sum of the number of samples per client vs. the actual number of samples available
+    difference = number_of_samples - number_of_samples_per_client.sum().item()
+    if difference != 0:
+        add_samples = difference > 0
+        if add_samples:
+            number_of_samples_per_client[:abs(difference)] += 1
+        else:
+            number_of_samples_per_client[:abs(difference)] -= 1
+
+    # Splits the dataset into subsets for each client and returns the subsets
+    return torch.utils.data.random_split(dataset, number_of_samples_per_client.tolist())

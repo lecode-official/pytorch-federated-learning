@@ -90,6 +90,25 @@ class FederatedAveragingCommandDescriptor(BaseCommandDescriptor):
             help=f'The dataset that is to be used for the training. Defaults to "{DatasetType.default_dataset()}".'
         )
         argument_parser.add_argument(
+            '-S',
+            '--dataset-splitting-strategy',
+            dest='dataset_splitting_strategy',
+            choices=['random', 'unbalanced-labels', 'unbalanced-sample-count', 'unbalanced'],
+            default='random',
+            help='''Determines the way that the dataset is split up for the clients. The "random" strategy results in an i.i.d. split of the dataset
+                where all clients have the same amount of samples. The "unbalanced-labels" strategy distributes the samples of the dataset among the
+                clients in a way such that each client gets the same amount of samples, but the labels are unbalanced, i.e., the number of samples per
+                label differs. The label ratios of each client follow a Dirichlet distribution, the statistical heterogeneity level of the client data
+                points can be controlled using the --dirichlet-alpha argument. The "unbalanced-sample-count" strategy distributes the samples of the
+                dataset among the clients in a way such that clients have a different amount of samples. The amount of samples per client follows a
+                log-normal distribution whose parameters are controlled via the --log-normal-sigma argument. The "unbalanced" strategy is a mix
+                between the "unbalanced-labels" and "unbalanced-sample-counts" splitting methods. The samples are distributed among the clients in
+                such a way that the labels and the sample counts are unbalanced, where the label ratios follow a Dirichlet distribution and the sample
+                counts of the clients follow a log-normal distribution. The parameters for both distributions can be controlled via the
+                --dirichlet-alpha and the --log-normal-sigma arguments. Defaults to "random".
+            '''
+        )
+        argument_parser.add_argument(
             '-D',
             '--dataset-path',
             dest='dataset_path',
