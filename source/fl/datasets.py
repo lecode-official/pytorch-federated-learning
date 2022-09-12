@@ -162,13 +162,15 @@ def split_dataset_using_random_strategy(dataset: torch.utils.data.Dataset, numbe
     # Splits the dataset into subsets for each client and returns the subsets
     return torch.utils.data.random_split(dataset, client_dataset_sizes)
 
+
 def split_dataset_using_unbalanced_sample_counts_strategy(
         dataset: torch.utils.data.Dataset,
         number_of_clients: int,
         sigma: float
     ) -> list[torch.utils.data.Dataset]:
     """Splits the dataset among the clients in a way such that clients have a different amount of samples, the amount of samples per client follows a
-    log-normal distribution (paper: https://openreview.net/pdf?id=B7v4QMR6Z9w).
+    log-normal distribution. The implementation of this splitting strategy was inspired by the lognormal_unbalance_split dataset splitting function in
+    FedLab (https://github.com/SMILELab-FL/FedLab/blob/master/fedlab/utils/dataset/functional.py#L54).
 
     Args:
         dataset (torch.utils.data.Dataset): The dataset that is to be split.
@@ -180,10 +182,14 @@ def split_dataset_using_unbalanced_sample_counts_strategy(
             federated learning client.
     """
 
-    # The number of samples per client follows a log-normal distribution
+    # The number of samples per client follows a log-normal distribution (the mean of the underlying normal distribution is set to the logarithm of
+    # the average number of samples per client to make the algorithm numerically stable, because otherwise the values of the log-normal distribution
+    # would explode and go to infinity if the average number of samples per client was large; taking the logarithm of the average number of samples
+    # per client makes the values of the distribution much smaller, but the proportions between the clients stay the same and the values are then
+    # normalized in the next step anyway, resulting in the exact same distribution of samples among the clients)
     number_of_samples = len(dataset)
     average_number_of_samples_per_client = number_of_samples / number_of_clients
-    number_of_samples_per_client = numpy.random.lognormal(mean=average_number_of_samples_per_client, sigma=sigma, size=number_of_clients)
+    number_of_samples_per_client = numpy.random.lognormal(mean=numpy.log(average_number_of_samples_per_client), sigma=sigma, size=number_of_clients)
     number_of_samples_per_client = number_of_samples_per_client / number_of_samples_per_client.sum() * number_of_samples
     number_of_samples_per_client = number_of_samples_per_client.astype(int)
 
