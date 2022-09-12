@@ -1,6 +1,7 @@
 """Contains the federated-averaging command."""
 
 import os
+import sys
 import csv
 import signal
 import logging
@@ -11,9 +12,15 @@ import yaml
 import torch
 
 from fl.commands.base import BaseCommand
-from fl.datasets import DatasetType, create_dataset, split_dataset_using_random_strategy
 from fl.models import ModelType, NormalizationLayerKind, get_minimum_input_size
 from fl.federated_learning import FederatedLearningCentralServer, FederatedLearningClient
+from fl.datasets import (
+    DatasetType,
+    create_dataset,
+    split_dataset_using_random_strategy,
+    split_dataset_using_unbalanced_labels_strategy,
+    split_dataset_using_unbalanced_sample_counts_strategy
+)
 
 
 class FederatedAveragingCommand(BaseCommand):
@@ -62,6 +69,9 @@ class FederatedAveragingCommand(BaseCommand):
                 'model': model_type.value,
                 'normalization_layer_kind': command_line_arguments.normalization_layer_kind,
                 'dataset': dataset_type.value,
+                'dataset_splitting_strategy': command_line_arguments.dataset_splitting_strategy,
+                'log_normal_sigma': command_line_arguments.log_normal_sigma,
+                'dirichlet_alpha': command_line_arguments.dirichlet_alpha,
                 'dataset_path': command_line_arguments.dataset_path,
                 'number_of_communication_rounds': command_line_arguments.number_of_communication_rounds,
                 'number_of_local_epochs': command_line_arguments.number_of_local_epochs,
@@ -95,7 +105,18 @@ class FederatedAveragingCommand(BaseCommand):
             command_line_arguments.dataset_path,
             minimum_sample_shape
         )
-        client_subsets = split_dataset_using_random_strategy(training_subset, command_line_arguments.number_of_clients)
+        client_subsets = []
+        if command_line_arguments.dataset_splitting_strategy == 'random':
+            client_subsets = split_dataset_using_random_strategy(training_subset, command_line_arguments.number_of_clients)
+        elif command_line_arguments.dataset_splitting_strategy == '':
+            client_subsets = split_dataset_using_unbalanced_sample_counts_strategy(
+                training_subset,
+                command_line_arguments.number_of_clients,
+                command_line_arguments.log_normal_sigma
+            )
+        else:
+            self.logger.error('The dataset splitting strategy %s is not supported. Exiting...', command_line_arguments.dataset_splitting_strategy)
+            sys.exit(1)
 
         # Creates the clients
         clients = []

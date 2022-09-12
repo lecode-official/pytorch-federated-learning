@@ -69,6 +69,7 @@ class FederatedAveragingCommandDescriptor(BaseCommandDescriptor):
             '-s',
             '--normalization-layer-kind',
             dest='normalization_layer_kind',
+            type=str,
             choices=['group-normalization', 'batch-normalization'],
             default='group-normalization',
             help='''The kind of normalization layer that is to be used in the model (only supported for the some of the available model types). It is
@@ -90,9 +91,10 @@ class FederatedAveragingCommandDescriptor(BaseCommandDescriptor):
             help=f'The dataset that is to be used for the training. Defaults to "{DatasetType.default_dataset()}".'
         )
         argument_parser.add_argument(
-            '-S',
+            '-p',
             '--dataset-splitting-strategy',
             dest='dataset_splitting_strategy',
+            type=str,
             choices=['random', 'unbalanced-labels', 'unbalanced-sample-count', 'unbalanced'],
             default='random',
             help='''Determines the way that the dataset is split up for the clients. The "random" strategy results in an i.i.d. split of the dataset
@@ -106,6 +108,32 @@ class FederatedAveragingCommandDescriptor(BaseCommandDescriptor):
                 such a way that the labels and the sample counts are unbalanced, where the label ratios follow a Dirichlet distribution and the sample
                 counts of the clients follow a log-normal distribution. The parameters for both distributions can be controlled via the
                 --dirichlet-alpha and the --log-normal-sigma arguments. Defaults to "random".
+            '''
+        )
+        argument_parser.add_argument(
+            '-S',
+            '--log-normal-sigma',
+            dest='log_normal_sigma',
+            type=float,
+            default=0.3,
+            help='''The standard deviation of the normal distribution that underlies the log-normal distribution that is used to distribute the
+                samples among the clients. Sigma controls how far to the right the distribution is skewed. As sigma approaches 0 it more and more
+                resembles a normal distribution. As sigma gets larger the tail of the distribution to the right becomes larger. Defaults to 0.3.
+            '''
+        )
+        argument_parser.add_argument(
+            '-a',
+            '--dirichlet-alpha',
+            dest='dirichlet_alpha',
+            type=float,
+            default=0.3,
+            help='''The concentration parameter for the Dirichlet distribution, which is used to distribute the labels among the clients. An alpha of
+                1 results in a uniform distribution, i.e., all clients have approximately the same amount of samples per label. A value for alpha that
+                is less than 1 results in a label distribution where each client concentrates on one label, i.e., each client has a lot of samples of
+                one label and fewer samples of the other labels. A value for alpha that is greater than 1 results in a distribution were the clients
+                have increasingly the same amount of samples per label. In simple terms, an alpha smaller than one results in a more heterogeneous
+                split of the labels while a value greater than 1 results in a more homogeneous split of the labels. The smaller alpha gets, the more
+                heterogeneous the split becomes, the greater alpha becomes, the more homogeneous the split becomes. Defaults to 0.3.
             '''
         )
         argument_parser.add_argument(
