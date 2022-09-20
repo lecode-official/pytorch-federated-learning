@@ -207,3 +207,13 @@ def split_dataset_using_unbalanced_sample_counts_strategy(
 
     # Splits the dataset into subsets for each client and returns the subsets
     return torch.utils.data.random_split(dataset, number_of_samples_per_client.tolist())
+
+
+def split_dataset_using_unbalanced_labels_strategy(
+        dataset: torch.utils.data.Dataset,
+        number_of_clients: int,
+        number_of_labels: int,
+        alpha: float
+    ) -> list[torch.utils.data.Dataset]:
+
+    pass

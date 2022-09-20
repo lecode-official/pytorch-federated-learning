@@ -114,6 +114,13 @@ class FederatedAveragingCommand(BaseCommand):
                 command_line_arguments.number_of_clients,
                 command_line_arguments.log_normal_sigma
             )
+        elif command_line_arguments.dataset_splitting_strategy == '':
+            client_subsets = split_dataset_using_unbalanced_labels_strategy(
+                training_subset,
+                command_line_arguments.number_of_clients,
+                number_of_classes,
+                command_line_arguments.dirichlet_alpha
+            )
         else:
             self.logger.error('The dataset splitting strategy %s is not supported. Exiting...', command_line_arguments.dataset_splitting_strategy)
             sys.exit(1)
