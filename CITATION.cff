@@ -20,6 +20,7 @@ keywords:
   - Deep Learning
   - Python
   - PyTorch
+  - PyTorch Implementation
   - Distributed Learning
   - Federated Learning
   - Federated Averaging
@@ -27,4 +28,4 @@ version: 0.2.0
 date-released: 2022-09-05
 license: MIT
 repository: https://github.com/lecode-official/pytorch-federated-learning.git
-url: 'https://github.com/lecode-official/pytorch-federated-learning'
+url: https://github.com/lecode-official/pytorch-federated-learning

@@ -11,7 +11,7 @@ git clone https://github.com/lecode-official/pytorch-federated-learning.git
 cd pytorch-federated-learning/source
 ```
 
-Before running the federated learning simulator, all dependencies have to be installed, which can easily be achieved using Miniconda. There are different environment files for the different operating systems and platforms. Please select an environment file that fits your operating system and platform. Currently online Linux AMD64 and MacOS ARM64 are officially supported.
+Before running the federated learning simulator, all dependencies have to be installed, which can easily be achieved using Miniconda. There are different environment files for the different operating systems and platforms. Please select an environment file that fits your operating system and platform. Currently only Linux AMD64 and macOS ARM64 are officially supported.
 
 ```bash
 conda env create -f environment.<operating-system>-<architecture>.yaml
@@ -31,7 +31,7 @@ When you install new packages, please update the environment file. Please make s
 conda env export | grep -v "prefix" > environment.<operating-system>-<architecture>.yaml
 ```
 
-When someone else has added or removed dependencies from the environment, you have update your environment from the Anaconda environment file as well. Again, please make sure to select the environment that fits your operating system and platform. The `--prune` switch makes sure that dependencies that have been removed from the Anaconda environment file are uninstalled):
+When someone else has added or removed dependencies from the environment, you have to update your environment from the Anaconda environment file as well. Again, please make sure to select the environment that fits your operating system and platform. The `--prune` switch makes sure that dependencies that have been removed from the Anaconda environment file are uninstalled:
 
 ```bash
 conda env update --file environment.<operating-system>-<architecture>.yaml --prune

@@ -32,5 +32,5 @@
 - Supports the following datasets:
   - MNIST
   - CIFAR-10
-- Supports Linux on AMD64 and MacOS on ARM64
+- Supports Linux on AMD64 and macOS on ARM64
 - Performed extensive experiments on all supported models and datasets using various numbers of clients and recorded the results in the read me

@@ -13,7 +13,6 @@ datasets
 
 # Ignores LaTeX files
 *.tex
-*.bib
 *.pdf
 *.synctex*
 *.aux

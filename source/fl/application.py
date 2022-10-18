@@ -11,7 +11,7 @@ from fl.commands import get_command_descriptors, get_command
 
 
 class Application:
-    """Represents the federated learning application."""
+    """Represents the Federated Learning Simulator application."""
 
     def __init__(self) -> None:
         """Initializes a new Application instance."""
