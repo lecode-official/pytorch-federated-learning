@@ -25,18 +25,6 @@ python -m fl <command> <arguments...>
 conda deactivate
 ```
 
-When you install new packages, please update the environment file. Please make sure to either create a new environment file for your operating system and platform (i.e., choose a moniker in the format `<operating-system>-<architecture>`, e.g., `windows-amd64`), or overwrite the one that matches your operating system and platform. Ideally, try to update all supported environments if you plan on creating a pull request. The environment file can be updated like so:
-
-```bash
-conda env export | grep -v "prefix" > environment.<operating-system>-<architecture>.yaml
-```
-
-When someone else has added or removed dependencies from the environment, you have to update your environment from the Anaconda environment file as well. Again, please make sure to select the environment that fits your operating system and platform. The `--prune` switch makes sure that dependencies that have been removed from the Anaconda environment file are uninstalled:
-
-```bash
-conda env update --file environment.<operating-system>-<architecture>.yaml --prune
-```
-
 ## Training Models
 
 To train models using federated learning or to perform baseline experiments, which can be used to compare federated learning results to, you can use the `fl` package. The `fl` package supports multiple commands. If you want to train a model using federated averaging, you can use the `federated-averaging` command. You have to specify the model that you want to train, the dataset that you want to train the model on, the path to the dataset, the number of communication rounds, the number of clients, and the path to the directory into which the global model checkpoints, hyperparameters, and the training statistics will be saved. The command will save the hyperparameters in a YAML file, and the training statistics of the central server and the clients in two separate CSV files. Furthermore, the command saves a global model checkpoint every time the validation accuracy of it outperforms all past global models. In order to not overcrowd the output directory, only the last 5 checkpoints are being retained and older ones are deleted. At the end of the training, the final model will be saved as well. The number of checkpoint files that are being retained can be configured using the `--number-of-checkpoint-files-to-retain`/`-R` argument.
@@ -136,6 +124,20 @@ For the baseline experiments, the models were trained on the training subset and
 | VGG11   | BatchNorm      | CIFAR-10 | 5                  | 0.01          | 0.98                | 0.9      | 0.0005       | 5          | 10,000  | 300                  | 100                             | 5            | 63.15% (Communication Round 281) |
 | VGG11   | GroupNorm (32) | CIFAR-10 | 5                  | 0.01          | 0.98                | 0.9      | 0.0005       | 5          | 10,000  | 300                  | 100                             | 5            | 52.62% (Communication Round 273) |
 
+## Development
+
+When you install new packages during development, please update the environment file. Please make sure to either create a new environment file for your operating system and platform (i.e., choose a moniker in the format `<operating-system>-<architecture>`, e.g., `windows-amd64`), or overwrite the one that matches your operating system and platform. Ideally, try to update all supported environments if you plan on creating a pull request. The environment file can be updated like so:
+
+```bash
+conda env export | grep -v "prefix" > environment.<operating-system>-<architecture>.yaml
+```
+
+When someone else has added or removed dependencies from the environment, you have to update your environment from the Anaconda environment file as well. Again, please make sure to select the environment that fits your operating system and platform. The `--prune` switch makes sure that dependencies that have been removed from the Anaconda environment file are uninstalled:
+
+```bash
+conda env update --file environment.<operating-system>-<architecture>.yaml --prune
+```
+
 ## Contributing
 
 If you would like to contribute, there are multiple ways you can help out. If you find a bug or have a feature request, please feel free to open an issue on [GitHub](https://github.com/lecode-official/pytorch-federated-learning/issues). If you want to contribute code, please fork the repository and use a feature branch. Pull requests are always welcome. Before forking, please open an issue where you describe what you want to do. This helps to align your ideas with mine and may prevent you from doing work, that I am already planning on doing. If you have contributed to the project, please add yourself to the [contributors list](CONTRIBUTORS.md) and add all your changes to the [changelog](CHANGELOG.md). To help speed up the merging of your pull request, please comment and document your code extensively and try to emulate the coding style of the project.
@@ -143,6 +145,22 @@ If you would like to contribute, there are multiple ways you can help out. If yo
 ## License
 
 The code in this project is licensed under the MIT license. For more information see the [license file](LICENSE).
+
+## Cite this Repository
+
+If you use this software in your research, please cite it like this or use the "Cite this repository" widget in the about section.
+
+```bibtex
+@software{Neumann_PyTorch_Federated_Learning_2022,
+    author = {Neumann, David},
+    license = {MIT},
+    month = {9},
+    title = {{PyTorch Federated Learning}},
+    url = {https://github.com/lecode-official/pytorch-federated-learning},
+    version = {0.2.0},
+    year = {2022}
+}
+```
 
 ## References
 
@@ -169,19 +187,3 @@ The code in this project is licensed under the MIT license. For more information
 <a id="11">**[11]**</a> Karen Simonyan and Andrew Zisserman. "Very Deep Convolutional Networks for Large-Scale Image Recognition". In: *arXiv e-prints* (Sept. 2014). arXiv: 1409.1556 [cs.CV].
 
 <a id="12">**[12]**</a> Yuxin Wu and Kaiming He. "Group Normalization". In: *International Journal of Computer Vision* 128.3 (Mar. 2020), pp. 742–755. ISSN: 1573-1405. DOI: 10.1007/s11263-019-01198-w. URL: https://doi.org/10.1007/s11263-019-01198-w.
-
-## Cite this Repository
-
-If you use this software in your research, please cite it like this or use the "Cite this repository" widget in the about section.
-
-```bibtex
-@software{Neumann_PyTorch_Federated_Learning_2022,
-    author = {Neumann, David},
-    license = {MIT},
-    month = {9},
-    title = {{PyTorch Federated Learning}},
-    url = {https://github.com/lecode-official/pytorch-federated-learning},
-    version = {0.2.0},
-    year = {2022}
-}
-```
