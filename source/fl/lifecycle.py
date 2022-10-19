@@ -14,7 +14,7 @@ class Trainer:
 
     def __init__(
             self,
-            device: Union[str, torch.device],
+            device: Union[int, str, torch.device],
             model: torch.nn.Module,
             training_subset: torch.utils.data.Dataset,
             learning_rate: float = 0.01,
@@ -24,7 +24,7 @@ class Trainer:
         """Initializes a new Trainer instance.
 
         Args:
-            device (Union[str, torch.device]): The device on which the model is to be trained.
+            device (Union[int, str, torch.device]): The device on which the model is to be trained.
             model (torch.nn.Module): The model that is to be trained.
             training_subset (torch.utils.data.Dataset): The training subset of the dataset on which the model is to be trained.
             learning_rate (float, optional): The learning rate of the optimizer. Defaults to 0.01.
@@ -147,14 +147,14 @@ class Validator:
 
     def __init__(
             self,
-            device: Union[str, torch.device],
+            device: Union[int, str, torch.device],
             model: torch.nn.Module,
             validation_subset: torch.utils.data.Dataset,
             batch_size: int = 128) -> None:
         """Initializes a new Validator instance.
 
         Args:
-            device (Union[str, torch.device]): The device on which the validation is to be performed.
+            device (Union[int, str, torch.device]): The device on which the validation is to be performed.
             model (torch.nn.Module): The model that is to be validated.
             validation_subset (torch.utils.data.Dataset): The validation subset of the dataset on which the model is to be validated.
             batch_size (int, optional): The size of the mini-batches that are to be used during the validation. Defaults to 128.

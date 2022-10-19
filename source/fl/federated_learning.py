@@ -182,7 +182,7 @@ class FederatedLearningClient:
     def __init__(
             self,
             client_id: int,
-            device: Union[str, torch.device],
+            device: Union[int, str, torch.device],
             local_model_type: ModelType,
             local_model_normalization_layer_kind: NormalizationLayerKind,
             local_training_subset: torch.utils.data.Dataset,
@@ -195,7 +195,7 @@ class FederatedLearningClient:
 
         Args:
             client_id (int): An ID, which uniquely identifies the client.
-            device (Union[str, torch.device]): The device on which the local model is to be trained.
+            device (Union[int, str, torch.device]): The device on which the local model is to be trained.
             local_model_type (ModelType): The type of local model that is to be trained.
             local_model_normalization_layer_kind (NormalizationLayerKind): The kind of the normalization layer that is used for the local model.
             local_training_subset (torch.utils.data.Dataset): The training subset of the local dataset on which the model is to be trained.
@@ -300,7 +300,7 @@ class FederatedLearningCentralServer:
             self,
             clients: list[FederatedLearningClient],
             number_of_clients_per_communication_round: Optional[int],
-            device: Union[str, torch.device],
+            device: Union[int, str, torch.device],
             global_model_type: ModelType,
             global_model_normalization_layer_kind: NormalizationLayerKind,
             central_validation_subset: torch.utils.data.Dataset,
@@ -318,7 +318,7 @@ class FederatedLearningCentralServer:
                 reducing this overhead, is to subsample the client population. In each communication round, the central server only selects a subset
                 of clients, which will train and communicate their updates back. This parameter specifies the number of clients that will be selected
                 at random in each communication round. If not specified, this defaults to the number of clients.
-            device (Union[str, torch.device]): The device on which the global model of the central server is to be validated.
+            device (Union[int, str, torch.device]): The device on which the global model of the central server is to be validated.
             global_model_type (ModelType): The type of model that is to be used as global model for the central server.
             global_model_normalization_layer_kind (NormalizationLayerKind): The kind of the normalization layer that is used for the global model.
             central_validation_subset (torch.utils.data.Dataset): The validation subset on which the global model is to be validated.
