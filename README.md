@@ -138,6 +138,13 @@ When someone else has added or removed dependencies from the environment, you ha
 conda env update --file environment.<operating-system>-<architecture>.yaml --prune
 ```
 
+The code in this repository follows most of the rules of PyLint, as well as PyCodeStyle (see `.pylintrc` and `.pycodestyle`, which contain the settings for both of them). Before committing any changes, adherence to these rules must be checked as follows:
+
+```bash
+pylint fl
+pycodestyle --config=.pycodestyle fl
+```
+
 ## Contributing
 
 If you would like to contribute, there are multiple ways you can help out. If you find a bug or have a feature request, please feel free to open an issue on [GitHub](https://github.com/lecode-official/pytorch-federated-learning/issues). If you want to contribute code, please fork the repository and use a feature branch. Pull requests are always welcome. Before forking, please open an issue where you describe what you want to do. This helps to align your ideas with mine and may prevent you from doing work, that I am already planning on doing. If you have contributed to the project, please add yourself to the [contributors list](CONTRIBUTORS.md) and add all your changes to the [changelog](CHANGELOG.md). To help speed up the merging of your pull request, please comment and document your code extensively and try to emulate the coding style of the project.

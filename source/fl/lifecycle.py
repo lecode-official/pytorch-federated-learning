@@ -14,7 +14,7 @@ class Trainer:
 
     def __init__(
             self,
-            device: Union[int, str, torch.device],
+            device: Union[int, str, torch.device],  # pylint: disable=no-member
             model: torch.nn.Module,
             training_subset: torch.utils.data.Dataset,
             learning_rate: float = 0.01,
@@ -88,7 +88,7 @@ class Trainer:
         mean_loss = torchmetrics.MeanMetric().to(self.device)
 
         # Cycles through the entire dataset and trains the model on the samples
-        for inputs, targets in tqdm(self.training_data_loader, desc=f'Training', unit='iterations'):
+        for inputs, targets in tqdm(self.training_data_loader, desc='Training', unit='iterations'):
 
             # Resets the gradients of the optimizer (otherwise the gradients would just accumulate)
             self.optimizer.zero_grad()
@@ -99,7 +99,7 @@ class Trainer:
 
             # Performs a forward pass through the neural network and computes the loss
             predictions = self.model(inputs)
-            loss = self.loss_function(predictions, targets)
+            loss = self.loss_function(predictions, targets)  # pylint: disable=not-callable
 
             # Updates the training metrics
             mean_loss.update(loss)
@@ -147,7 +147,7 @@ class Validator:
 
     def __init__(
             self,
-            device: Union[int, str, torch.device],
+            device: Union[int, str, torch.device],  # pylint: disable=no-member
             model: torch.nn.Module,
             validation_subset: torch.utils.data.Dataset,
             batch_size: int = 128) -> None:
@@ -208,7 +208,7 @@ class Validator:
 
                 # Performs the forward pass through the neural network and computes the loss
                 predictions = self.model(inputs)
-                loss = self.loss_function(predictions, targets)
+                loss = self.loss_function(predictions, targets)  # pylint: disable=not-callable
 
                 # Updates the validation metrics
                 mean_loss.update(loss)

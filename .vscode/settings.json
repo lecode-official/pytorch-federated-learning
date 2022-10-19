@@ -1,4 +1,9 @@
 {
+    "python.linting.pylintEnabled": true,
+    "python.linting.pylintArgs": ["--rcfile", "source/.pylintrc"],
+    "python.linting.pycodestyleEnabled": true,
+    "python.linting.pycodestyleArgs": ["--config", "source/.pycodestyle"],
+
     "editor.rulers": [150],
 
     "files.trimTrailingWhitespace": true,
@@ -105,6 +110,8 @@
         "Paszke",
         "PMLR",
         "psutil",
+        "pycodestyle",
+        "pylint",
         "pyplot",
         "Pythonic",
         "pytorch",

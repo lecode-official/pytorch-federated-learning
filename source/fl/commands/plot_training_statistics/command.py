@@ -41,7 +41,7 @@ class PlotTrainingStatisticsCommand(BaseCommand):
         # losses/accuracies of the training need to be plotted, while in the case of a federated learning experiment, the training statistics for the
         # central server and a subset of the clients need to be plotted)
         hyperparameters = None
-        with open(os.path.join(command_line_arguments.experiment_path, 'hyperparameters.yaml'), 'r') as hyperparameters_file:
+        with open(os.path.join(command_line_arguments.experiment_path, 'hyperparameters.yaml'), 'r', encoding='utf-8') as hyperparameters_file:
             hyperparameters = yaml.load(hyperparameters_file, Loader=yaml.FullLoader)
 
         # Based on whether the experiment was a baseline or a federated learning experiment, different kinds of plots are generated
@@ -135,7 +135,7 @@ class PlotTrainingStatisticsCommand(BaseCommand):
             color='red',
             marker='.',
             markersize=5,
-            label=f'Training Loss'
+            label='Training Loss'
         )
 
         # Adds the legend to the training loss and accuracy plot
@@ -155,8 +155,7 @@ class PlotTrainingStatisticsCommand(BaseCommand):
             output_file_path: str,
             number_of_clients: int,
             maximum_number_of_clients_to_plot: int,
-            client_sampling_method: str
-        ) -> None:
+            client_sampling_method: str) -> None:
         """Plots the training statistics of a federated learning experiment.
 
         Args:
@@ -235,7 +234,7 @@ class PlotTrainingStatisticsCommand(BaseCommand):
         central_server_validation_accuracy_axis.legend(accuracy_handles + loss_handles, accuracy_labels + loss_labels)
 
         # Creates the plots for the training loss and training accuracy of the clients
-        with tqdm(total=number_of_clients_to_plot, desc=f'Plotting', unit='clients') as progress_bar:
+        with tqdm(total=number_of_clients_to_plot, desc='Plotting', unit='clients') as progress_bar:
             federated_learning_client_id_iterator = iter(client_ids_to_plot)
             for column in range(1, width + 1):
                 for row in range(height):

@@ -49,10 +49,12 @@ class FederatedAveragingCommand(BaseCommand):
         dataset_type = DatasetType(command_line_arguments.dataset_type)
 
         # Prepares the training statistics CSV files by writing the headers to files
-        with open(os.path.join(command_line_arguments.output_path, 'central-server-training-statistics.csv'), 'w') as training_statistics_file:
+        central_server_training_statistics_file_path = os.path.join(command_line_arguments.output_path, 'central-server-training-statistics.csv')
+        with open(central_server_training_statistics_file_path, 'w', encoding='utf-8') as training_statistics_file:
             csv_writer = csv.writer(training_statistics_file)
             csv_writer.writerow(['timestamp', 'communication_round', 'validation_loss', 'validation_accuracy'])
-        with open(os.path.join(command_line_arguments.output_path, 'client-training-statistics.csv'), 'w') as training_statistics_file:
+        client_training_statistics_file_path = os.path.join(command_line_arguments.output_path, 'client-training-statistics.csv')
+        with open(client_training_statistics_file_path, 'w', encoding='utf-8') as training_statistics_file:
             csv_writer = csv.writer(training_statistics_file)
             csv_row = ['timestamp', 'communication_round']
             for client_id in range(1, command_line_arguments.number_of_clients + 1):
@@ -60,11 +62,11 @@ class FederatedAveragingCommand(BaseCommand):
             csv_writer.writerow(csv_row)
 
         # Saves the hyperparameters for later reference
-        with open(os.path.join(command_line_arguments.output_path, 'hyperparameters.yaml'), 'w') as hyperparameters_file:
+        with open(os.path.join(command_line_arguments.output_path, 'hyperparameters.yaml'), 'w', encoding='utf-8') as hyperparameters_file:
             yaml.dump({
                 'method': 'federated_averaging',
                 'number_of_clients': command_line_arguments.number_of_clients,
-                'number_of_clients_per_communication_round': \
+                'number_of_clients_per_communication_round':
                     command_line_arguments.number_of_clients_per_communication_round or command_line_arguments.number_of_clients,
                 'model': model_type.value,
                 'normalization_layer_kind': command_line_arguments.normalization_layer_kind,
@@ -95,7 +97,7 @@ class FederatedAveragingCommand(BaseCommand):
             elif torch.backends.mps.is_available():
                 device = 'mps'
                 device_name = 'Apple Silicon GPU (MPS)'
-        self.logger.info(f'Selected {device_name} to perform training...')
+        self.logger.info('Selected %s to perform training...', device_name)
 
         # Loading the datasets
         self.logger.info('Loading dataset (%s)...', dataset_type.get_human_readable_name())
@@ -192,10 +194,12 @@ class FederatedAveragingCommand(BaseCommand):
             # Writes the training statistics into CSV files (the training statistics of the central server and the clients are stored in a separate
             # CSV files)
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            with open(os.path.join(command_line_arguments.output_path, 'central-server-training-statistics.csv'), 'a') as training_statistics_file:
+            central_server_training_statistics_file_path = os.path.join(command_line_arguments.output_path, 'central-server-training-statistics.csv')
+            with open(central_server_training_statistics_file_path, 'a', encoding='utf-8') as training_statistics_file:
                 csv_writer = csv.writer(training_statistics_file)
                 csv_writer.writerow([timestamp, communication_round, central_server_validation_loss, central_server_validation_accuracy])
-            with open(os.path.join(command_line_arguments.output_path, 'client-training-statistics.csv'), 'a') as training_statistics_file:
+            client_training_statistics_file_path = os.path.join(command_line_arguments.output_path, 'client-training-statistics.csv')
+            with open(client_training_statistics_file_path, 'a', encoding='utf-8') as training_statistics_file:
                 csv_writer = csv.writer(training_statistics_file)
                 csv_row = [timestamp, communication_round]
                 for client_index in range(command_line_arguments.number_of_clients):
@@ -242,8 +246,7 @@ class FederatedAveragingCommand(BaseCommand):
             dataset_type: DatasetType,
             communication_round: str,
             accuracy: float,
-            output_path: str
-        ) -> str:
+            output_path: str) -> str:
         """Saves the current state of the global model of the central server to disk.
 
         Args:
@@ -271,7 +274,7 @@ class FederatedAveragingCommand(BaseCommand):
 
         # If the user hits Ctrl+C a second time, then the application is closed right away
         if self.is_aborting:
-            exit()
+            sys.exit(1)
 
         # Since this is the first time, that the user hit Ctrl+C, the aborting process is initiated
         self.is_aborting = True

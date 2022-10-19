@@ -182,7 +182,7 @@ class FederatedLearningClient:
     def __init__(
             self,
             client_id: int,
-            device: Union[int, str, torch.device],
+            device: Union[int, str, torch.device],  # pylint: disable=no-member
             local_model_type: ModelType,
             local_model_normalization_layer_kind: NormalizationLayerKind,
             local_training_subset: torch.utils.data.Dataset,
@@ -231,8 +231,7 @@ class FederatedLearningClient:
             self,
             global_model_parameters: collections.OrderedDict,
             learning_rate: float,
-            number_of_epochs: int
-        ) -> tuple[float, float, collections.OrderedDict]:
+            number_of_epochs: int) -> tuple[float, float, collections.OrderedDict]:
         """Trains the local model on the local data of the client.
 
         Args:
@@ -258,7 +257,7 @@ class FederatedLearningClient:
         # Copies the parameters of the global model
         local_model_parameters = local_model.state_dict()
         for parameter_name in global_model_parameters:
-            local_model_parameters[parameter_name].copy_(global_model_parameters[parameter_name])
+            local_model_parameters[parameter_name].copy_(global_model_parameters[parameter_name])  # pylint: disable=unsubscriptable-object
 
         # Creates the trainer for the model
         self.trainer = Trainer(
@@ -300,7 +299,7 @@ class FederatedLearningCentralServer:
             self,
             clients: list[FederatedLearningClient],
             number_of_clients_per_communication_round: Optional[int],
-            device: Union[int, str, torch.device],
+            device: Union[int, str, torch.device],  # pylint: disable=no-member
             global_model_type: ModelType,
             global_model_normalization_layer_kind: NormalizationLayerKind,
             central_validation_subset: torch.utils.data.Dataset,

@@ -50,8 +50,7 @@ class DatasetType(Enum):
 
 def load_cifar_10(
         path: str,
-        minimum_sample_size: tuple[int, int]
-    ) -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset, tuple[int, int, int], int]:
+        minimum_sample_size: tuple[int, int]) -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset, tuple[int, int, int], int]:
     """Loads the training and validation subsets of the CIFAR-10 dataset.
 
     Args:
@@ -80,8 +79,7 @@ def load_cifar_10(
 
 def load_mnist(
         path: str,
-        minimum_sample_size: tuple[int, int]
-    ) -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset, tuple[int, int, int], int]:
+        minimum_sample_size: tuple[int, int]) -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset, tuple[int, int, int], int]:
     """Loads the training and validation subsets of the MNIST dataset.
 
     Args:
@@ -111,8 +109,7 @@ def load_mnist(
 def create_dataset(
         dataset_type: DatasetType,
         path: str,
-        minimum_sample_size: tuple[int, int]
-    ) -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset, tuple[int, int, int], int]:
+        minimum_sample_size: tuple[int, int]) -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset, tuple[int, int, int], int]:
     """Creates the specified dataset.
 
     Args:
@@ -166,9 +163,8 @@ def split_dataset_using_random_strategy(dataset: torch.utils.data.Dataset, numbe
 def split_dataset_using_unbalanced_sample_counts_strategy(
         dataset: torch.utils.data.Dataset,
         number_of_clients: int,
-        sigma: float
-    ) -> list[torch.utils.data.Dataset]:
-    """Splits the dataset among the clients in a way such that clients have a different amount of samples, the amount of samples per client follows a
+        sigma: float) -> list[torch.utils.data.Dataset]:
+    """Splits the dataset among the clients in a way such that clients have a different amount of samples. The amount of samples per client follows a
     log-normal distribution. The implementation of this splitting strategy was inspired by the lognormal_unbalance_split dataset splitting function in
     FedLab (https://github.com/SMILELab-FL/FedLab/blob/master/fedlab/utils/dataset/functional.py#L54).
 
@@ -178,8 +174,7 @@ def split_dataset_using_unbalanced_sample_counts_strategy(
         sigma (float): The standard deviation of the normal distribution that is underlying the log-normal distribution. Must be non-negative.
 
     Returns:
-        tuple[torch.utils.data.Dataset, list[torch.utils.data.Dataset]]: Returns a list that contains subsets of the specified dataset for every
-            federated learning client.
+        list[torch.utils.data.Dataset]: Returns a list that contains subsets of the specified dataset for every federated learning client.
     """
 
     # The number of samples per client follows a log-normal distribution (the mean of the underlying normal distribution is set to the logarithm of
@@ -213,7 +208,28 @@ def split_dataset_using_unbalanced_labels_strategy(
         dataset: torch.utils.data.Dataset,
         number_of_clients: int,
         number_of_labels: int,
-        alpha: float
-    ) -> list[torch.utils.data.Dataset]:
+        alpha: float) -> list[torch.utils.data.Dataset]:
+    """Splits the dataset among the clients in a way such that clients have have different labels. The samples that each client has follows Dirichlet
+    distribution. The implementation of this splitting strategy was inspired by the lognormal_unbalance_split dataset splitting function in
+    FedLab (https://github.com/SMILELab-FL/FedLab/blob/master/fedlab/utils/dataset/functional.py#L241).
 
-    pass
+    Args:
+        dataset (torch.utils.data.Dataset): The dataset that is to be split.
+        number_of_clients (int): The number of clients among which the dataset is to be split.
+        number_of_labels (int): The number of labels that each client should receive.
+        alpha (float): The concentration parameter for the Dirichlet distribution, which is used to distribute the labels among the clients. An alpha
+            of 1 results in a uniform distribution, i.e., all clients have approximately the same amount of samples per label. A value for alpha that
+            is less than 1 results in a label distribution where each client concentrates on one label, i.e., each client has a lot of samples of one
+            label and fewer samples of the other labels. A value for alpha that is greater than 1 results in a distribution were the clients have
+            increasingly the same amount of samples per label. In simple terms, an alpha smaller than one results in a more heterogeneous split of the
+            labels while a value greater than 1 results in a more homogeneous split of the labels. The smaller alpha gets, the more heterogeneous the
+            split becomes, the greater alpha becomes, the more homogeneous the split becomes.
+
+    Raises:
+        NotImplementedError: This method is currently not implemented.
+
+    Returns:
+        list[torch.utils.data.Dataset]: Returns a list that contains subsets of the specified dataset for every federated learning client.
+    """
+
+    raise NotImplementedError()

@@ -1,6 +1,7 @@
 """Contains the baseline command."""
 
 import os
+import sys
 import csv
 import signal
 import logging
@@ -42,12 +43,12 @@ class BaselineCommand(BaseCommand):
         dataset_type = DatasetType(command_line_arguments.dataset_type)
 
         # Prepares the training statistics CSV file by writing the header to file
-        with open(os.path.join(command_line_arguments.output_path, 'training-statistics.csv'), 'w') as training_statistics_file:
+        with open(os.path.join(command_line_arguments.output_path, 'training-statistics.csv'), 'w', encoding='utf-8') as training_statistics_file:
             csv_writer = csv.writer(training_statistics_file)
             csv_writer.writerow(['timestamp', 'epoch', 'training_loss', 'training_accuracy', 'validation_loss', 'validation_accuracy'])
 
         # Saves the hyperparameters for later reference
-        with open(os.path.join(command_line_arguments.output_path, 'hyperparameters.yaml'), 'w') as hyperparameters_file:
+        with open(os.path.join(command_line_arguments.output_path, 'hyperparameters.yaml'), 'w', encoding='utf-8') as hyperparameters_file:
             yaml.dump({
                 'method': 'baseline',
                 'model': model_type.value,
@@ -75,7 +76,7 @@ class BaselineCommand(BaseCommand):
             elif torch.backends.mps.is_available():
                 device = 'mps'
                 device_name = 'Apple Silicon GPU (MPS)'
-        self.logger.info(f'Selected {device_name} to perform training...')
+        self.logger.info('Selected %s to perform training...', device_name)
 
         # Loading the datasets
         self.logger.info('Loading dataset (%s)...', dataset_type.get_human_readable_name())
@@ -129,7 +130,7 @@ class BaselineCommand(BaseCommand):
 
             # Performs training on the model for one epoch
             self.logger.info('Starting epoch %d...', epoch)
-            self.logger.info(f'Training model...')
+            self.logger.info('Training model...')
             self.trainer.change_learning_rate(current_learning_rate)
             training_loss, training_accuracy = self.trainer.train_for_one_epoch()
             self.logger.info(
@@ -141,13 +142,13 @@ class BaselineCommand(BaseCommand):
             current_learning_rate = current_learning_rate * command_line_arguments.learning_rate_decay
 
             # Validates the updated model and reports its loss and accuracy
-            self.logger.info(f'Validating model...')
+            self.logger.info('Validating model...')
             validation_loss, validation_accuracy = validator.validate()
             self.logger.info('Finished epoch %d, validation loss: %f, validation accuracy: %f%%', epoch, validation_loss, validation_accuracy * 100)
 
             # Writes the training statistics into a CSV file
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            with open(os.path.join(command_line_arguments.output_path, 'training-statistics.csv'), 'a') as training_statistics_file:
+            with open(os.path.join(command_line_arguments.output_path, 'training-statistics.csv'), 'a', encoding='utf-8') as training_statistics_file:
                 csv_writer = csv.writer(training_statistics_file)
                 csv_writer.writerow([timestamp, epoch, training_loss, training_accuracy, validation_loss, validation_accuracy])
 
@@ -213,7 +214,7 @@ class BaselineCommand(BaseCommand):
 
         # If the user hits Ctrl+C a second time, then the application is closed right away
         if self.is_aborting:
-            exit()
+            sys.exit(1)
 
         # Since this is the first time, that the user hit Ctrl+C, the aborting process is initiated
         self.is_aborting = True

@@ -1,9 +1,10 @@
 """Models used in the federated learning."""
 
-import numpy
-import torch
 from enum import Enum
 from typing import Type
+
+import numpy
+import torch
 
 
 class ModelType(Enum):
@@ -64,7 +65,7 @@ class LeNet5(torch.nn.Module):
             number_of_classes (int): The number of classes between which the model has to differentiate.
         """
 
-        super(LeNet5, self).__init__()
+        super().__init__()
 
         self.input_shape = input_shape
         self.number_of_classes = number_of_classes
@@ -124,7 +125,7 @@ class Vgg11(torch.nn.Module):
             normalization_layer_kind (NormalizationLayerKind): The kind of the normalization layer that is used.
         """
 
-        super(Vgg11, self).__init__()
+        super().__init__()
 
         self.input_shape = input_shape
         self.number_of_classes = number_of_classes
@@ -133,53 +134,53 @@ class Vgg11(torch.nn.Module):
         if normalization_layer_kind == NormalizationLayerKind.BATCH_NORMALIZATION:
             self.normalization_layer_1 = torch.nn.BatchNorm2d(64)
         else:
-            self.normalization_layer_1  = torch.nn.GroupNorm(num_groups=32, num_channels=64)
+            self.normalization_layer_1 = torch.nn.GroupNorm(num_groups=32, num_channels=64)
         output_shape = (64, self.input_shape[1] // 2, self.input_shape[2] // 2)
 
         self.convolutional_layer_2 = torch.nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, padding=1)
         if normalization_layer_kind == NormalizationLayerKind.BATCH_NORMALIZATION:
             self.normalization_layer_2 = torch.nn.BatchNorm2d(128)
         else:
-            self.normalization_layer_2  = torch.nn.GroupNorm(num_groups=32, num_channels=128)
+            self.normalization_layer_2 = torch.nn.GroupNorm(num_groups=32, num_channels=128)
         output_shape = (128, output_shape[1] // 2, output_shape[2] // 2)
 
         self.convolutional_layer_3 = torch.nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, padding=1)
         if normalization_layer_kind == NormalizationLayerKind.BATCH_NORMALIZATION:
             self.normalization_layer_3 = torch.nn.BatchNorm2d(256)
         else:
-            self.normalization_layer_3  = torch.nn.GroupNorm(num_groups=32, num_channels=256)
+            self.normalization_layer_3 = torch.nn.GroupNorm(num_groups=32, num_channels=256)
 
         self.convolutional_layer_4 = torch.nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, padding=1)
         if normalization_layer_kind == NormalizationLayerKind.BATCH_NORMALIZATION:
             self.normalization_layer_4 = torch.nn.BatchNorm2d(256)
         else:
-            self.normalization_layer_4  = torch.nn.GroupNorm(num_groups=32, num_channels=256)
+            self.normalization_layer_4 = torch.nn.GroupNorm(num_groups=32, num_channels=256)
         output_shape = (256, output_shape[1] // 2, output_shape[2] // 2)
 
         self.convolutional_layer_5 = torch.nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3, padding=1)
         if normalization_layer_kind == NormalizationLayerKind.BATCH_NORMALIZATION:
             self.normalization_layer_5 = torch.nn.BatchNorm2d(512)
         else:
-            self.normalization_layer_5  = torch.nn.GroupNorm(num_groups=32, num_channels=512)
+            self.normalization_layer_5 = torch.nn.GroupNorm(num_groups=32, num_channels=512)
 
         self.convolutional_layer_6 = torch.nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, padding=1)
         if normalization_layer_kind == NormalizationLayerKind.BATCH_NORMALIZATION:
             self.normalization_layer_6 = torch.nn.BatchNorm2d(512)
         else:
-            self.normalization_layer_6  = torch.nn.GroupNorm(num_groups=32, num_channels=512)
+            self.normalization_layer_6 = torch.nn.GroupNorm(num_groups=32, num_channels=512)
         output_shape = (512, output_shape[1] // 2, output_shape[2] // 2)
 
         self.convolutional_layer_7 = torch.nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, padding=1)
         if normalization_layer_kind == NormalizationLayerKind.BATCH_NORMALIZATION:
             self.normalization_layer_7 = torch.nn.BatchNorm2d(512)
         else:
-            self.normalization_layer_7  = torch.nn.GroupNorm(num_groups=32, num_channels=512)
+            self.normalization_layer_7 = torch.nn.GroupNorm(num_groups=32, num_channels=512)
 
         self.convolutional_layer_8 = torch.nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, padding=1)
         if normalization_layer_kind == NormalizationLayerKind.BATCH_NORMALIZATION:
             self.normalization_layer_8 = torch.nn.BatchNorm2d(512)
         else:
-            self.normalization_layer_8  = torch.nn.GroupNorm(num_groups=32, num_channels=512)
+            self.normalization_layer_8 = torch.nn.GroupNorm(num_groups=32, num_channels=512)
         output_shape = (512, output_shape[1] // 2, output_shape[2] // 2)
 
         self.fully_connected_layer_1 = torch.nn.Linear(512 * output_shape[1] * output_shape[2], 4096)
@@ -233,7 +234,7 @@ class Vgg11(torch.nn.Module):
         y = torch.nn.functional.relu(y)
         y = torch.nn.functional.max_pool2d(y, kernel_size=2, stride=2)
 
-        y = torch.flatten(y, 1)
+        y = torch.flatten(y, 1)  # pylint: disable=no-member
 
         y = self.fully_connected_layer_1(y)
         y = torch.nn.functional.relu(y)
@@ -275,8 +276,7 @@ def create_model(
         model_type: ModelType,
         input_shape: tuple[int, int, int],
         number_of_classes: int,
-        normalization_layer_kind: NormalizationLayerKind
-    ) -> torch.nn.Module:
+        normalization_layer_kind: NormalizationLayerKind) -> torch.nn.Module:
     """Creates a model of the specified type.
 
     Args:
@@ -312,4 +312,4 @@ def get_number_of_parameters(model: torch.nn.Module) -> int:
         int: Returns the number of trainable parameters of the specified model.
     """
 
-    return sum([parameter.numel() for parameter in model.parameters() if parameter.requires_grad])
+    return sum(parameter.numel() for parameter in model.parameters() if parameter.requires_grad)
