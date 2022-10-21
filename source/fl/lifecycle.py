@@ -64,7 +64,7 @@ class Trainer:
         # Creates the loss function
         self.loss_function = torch.nn.CrossEntropyLoss().to(self.device)
 
-        # Creates the optimizer for the training (Adam is generally a good choice, I have tried SGD, but it was worse than Adam)
+        # Creates the optimizer for the training
         self.optimizer = torch.optim.SGD(
             self.model.parameters(),
             lr=self.learning_rate,

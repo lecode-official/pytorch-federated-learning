@@ -55,7 +55,9 @@ class NormalizationLayerKind(Enum):
 
 
 class LeNet5(torch.nn.Module):
-    """Represents the classical CNN model architecture LeNet5."""
+    """Represents the classical convolutional neural network architecture LeNet-5 introduced by Yann LeCun et al. in their paper "Gradient-Based
+    Learning Applied to Document Recognition.", where it was used for character recognition.
+    """
 
     def __init__(self, input_shape: tuple[int, int, int], number_of_classes: int) -> None:
         """Initializes a new LeNet5 instance.
